@@ -1,50 +1,47 @@
 const fs = require('fs');
-const path = require('path');
 
-// Define the specific expected text to check in the file
-const requiredTexts = [
-    "global.botname = 'BigDaddy V1'", // Bot name
-    "global.link = 'https://whatsapp.com/channel/0029VagdMGd6LwHms3wqEm0m'" // WhatsApp channel link
-];
+global.ownername = 'ᴘʜ✦ꜱᴛᴀʀ';  // expected owner name
+global.botname = 'BigDaddy V1';   // expected bot name
+global.link = 'https://whatsapp.com/channel/0029VagdMGd6LwHms3wqEm0m';  // expected link
 
-// Path to the file to check
-const filePath = path.join(__dirname, 'phistarbot.js);
-
-// Function to check the integrity of the Phistarbots.js file
-async function checkAntiClone() {
+const checkAntiClone = () => {
     try {
-        // Check if the file exists
-        if (!fs.existsSync(filePath)) {
-            throw new Error('Phistarbots.js file not found!');
-        }
+        const filePath = './phistarbot.js';  // path to the bot script
 
-        // Read the content of the file
-        const fileContent = fs.readFileSync(filePath, 'utf-8').replace(/\s+/g, '');
+        // Read the content of the bot script
+        const sanitizedContent = fs.readFileSync(filePath, 'utf-8').replace(/\s+/g, '').toLowerCase();
 
-        // Check if all the required strings exist in the file content
-        let validationPassed = true;
-        requiredTexts.forEach(text => {
-            const sanitizedText = text.replace(/\s+/g, ''); // Remove extra spaces
-            if (!fileContent.includes(sanitizedText)) {
-                console.error(`Missing required text: ${text}`);
-                validationPassed = false;
-            }
-        });
-
-        // If all required text is present, allow the bot to work
-        if (validationPassed) {
-            console.log('Integrity check passed: Phistarbots.js is secure.');
-            console.log('Bot is now working!');
+        // Check if the content matches the expected global variables
+        if (sanitizedContent.includes(global.ownername.toLowerCase())) {
+            console.log('Owner name is correct.');
         } else {
-            // If any required text is missing, show an error and spam the console
-            throw new Error('Anti-clone validation failed!');
+            throw new Error('Owner name does not match! Anti-clone detected.');
         }
+
+        if (sanitizedContent.includes(global.botname.toLowerCase())) {
+            console.log('Bot name is correct.');
+        } else {
+            throw new Error('Bot name does not match! Anti-clone detected.');
+        }
+
+        if (sanitizedContent.includes(global.link.toLowerCase())) {
+            console.log('Link is correct.');
+        } else {
+            throw new Error('Link does not match! Anti-clone detected.');
+        }
+
+        // If all checks pass, the bot starts
+        console.log('Integrity check passed: Phistarbots.js is secure.');
+        console.log('Bot is now working!');
+
     } catch (error) {
         console.error(error.message);
+
+        // Spam the console with anti-clone messages if any condition fails
         setInterval(() => {
-            console.error('Corner Idiot, do you think you can clone me? Anti-clone detected');
-        }, 1000); // Spam every second
+            console.error('Corner Idiot, do you think you can clone me? Anti-clone detected!');
+        }, 1000);  // Spam every second
     }
-}
+};
 
 checkAntiClone();
