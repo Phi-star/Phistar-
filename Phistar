@@ -1,11 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 
-// Define the expected values for the critical global variables
-const expectedValues = {
-    botname: 'BigDaddy V1',    // Expected bot name
-    link: 'https://whatsapp.com/channel/0029VagdMGd6LwHms3wqEm0m',  // Expected link
-};
+// Define the specific expected text to check in the file
+const requiredTexts = [
+    "global.link = 'https://whatsapp.com/channel/0029VagdMGd6LwHms3wqEm0m'",  // Check for this exact line
+    "global.botname = 'BigDaddy V1'", // Check for this exact line
+    "global.ownername = 'ᴘʜ✦ꜱᛏᴀʀ'" // Check for this exact line
+];
 
 // Path to the file to check
 const filePath = path.join(__dirname, 'Phistarbots.js');
@@ -17,21 +18,19 @@ async function checkAntiClone() {
         // Read the content of the file
         const fileContent = fs.readFileSync(filePath, 'utf-8');
 
-        // Initialize validation flag
+        // Check if all the required strings exist in the file content
         let validationPassed = true;
-
-        // Check for the expected values for each global variable in the file content
-        Object.entries(expectedValues).forEach(([key, value]) => {
-            const regex = new RegExp(`global.${key} = '${value}'`);
-            if (!regex.test(fileContent)) {
-                console.error(`Missing or incorrect value for ${key}: ${value}`);
+        requiredTexts.forEach(text => {
+            if (!fileContent.includes(text)) {
+                console.error(`Missing required text: ${text}`);
                 validationPassed = false;
             }
         });
 
-        // If validation failed, spam the message
+        // If any required text is missing, show an error
         if (!validationPassed) {
             console.error('Anti-clone validation failed!');
+            // Keep spamming the message in the console if validation fails
             setInterval(() => {
                 console.error('Corner Idiot, do you think you can clone me? Anti-clone detected');
             }, 1000); // Spam every second
