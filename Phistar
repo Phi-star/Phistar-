@@ -3,7 +3,6 @@ const path = require('path');
 
 // Define the expected values for the critical global variables
 const expectedValues = {
-    ownername: 'ᴘʜ✦ꜱᛏᴀʀ',    // Expected owner name
     botname: 'BigDaddy V1',    // Expected bot name
     link: 'https://whatsapp.com/channel/0029VagdMGd6LwHms3wqEm0m',  // Expected link
 };
