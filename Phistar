@@ -5,7 +5,7 @@ const path = require('path');
 const requiredTexts = [
     "global.link = 'https://whatsapp.com/channel/0029VagdMGd6LwHms3wqEm0m'",  // Check for this exact line
     "global.botname = 'BigDaddy V1'", // Check for this exact line
-    "global.ownername = 'ᴘʜ✦ꜱᛏᴀʀ'" // Check for this exact line
+    "global.ownername = 'ᴘʜ✦ꜱᴛᴀʀ'" // Check for this exact line
 ];
 
 // Path to the file to check
