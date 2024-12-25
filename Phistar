@@ -8,7 +8,7 @@ const requiredTexts = [
 ];
 
 // Path to the file to check
-const filePath = path.join(__dirname, 'phistarbots.js');
+const filePath = path.join(__dirname, 'phistarbot.js');
 
 // Function to check the integrity of the Phistarbots.js file
 async function checkAntiClone() {
