@@ -3,13 +3,7 @@ const path = require('path');
 
 // Define the expected critical bot file content (using your defined variables)
 const expectedFileContent = `
-global.ownernumber = '09128019141' // creator number
-global.ownername = 'ᴘʜ✦ꜱᴛᴀʀ' // owner name
 global.botname = 'BigDaddy V1' // name of the bot
-global.packname = 'Sticker By'
-global.author = 'phistar\n\nContact: +2349128019141'
-global.theememoji = '🪐'
-global.wm = "*ᴘʜ✦ꜱᴛᴀʀ ᴛᴇᴄʜ*"
 global.link = 'https://whatsapp.com/channel/0029VagdMGd6LwHms3wqEm0m'
 `;
 
