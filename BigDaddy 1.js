@@ -470,20 +470,26 @@ function convertToVideo(inputBuffer, outputExtension) {
         });
     });
 }
-async function loading () {
-var xeonlod = [
-"《 *BIG DADDY V1*》10%",
-"《 *INITIATING*》30%",
-"《 *POWERED BY PHISTAR*》50%",
-"《 *8% ALMOST DONE*》80%",
-"《 *BIG DADDY V1*》100%",
-"*BigDaddyV1* 𝙻𝙾𝙰𝙳𝙸𝙽𝙶 𝙲𝙾𝙼𝙿𝙻𝙴𝚃𝙴𝙳 💥..."
-]
-let { key } = await XeonBotInc.sendMessage(from, {text: 'ʟᴏᴀᴅɪɴɢ...'})
+async function loading(from) {
+    const xeonlod = [
+        "🌟 *BIG DADDY V1*  10%... 🌟",
+        "⚡️ *INITIATING...* 30% ⚡️",
+        "🔋 *POWERED BY PHISTAR* 50% 🔋",
+        "🚀 *8% ALMOST DONE...* 80% 🚀",
+        "💥 *BIG DADDY V1* 100% 💥",
+        "💎 *BIG DADDY V1 LOADING COMPLETED* 💎"
+    ];
 
-for (let i = 0; i < xeonlod.length; i++) {
-await XeonBotInc.sendMessage(from, {text: xeonlod[i], edit: key });
-}
+    let { key } = await XeonBotInc.sendMessage(from, { text: '⏳ *LOADING...* ⏳' });
+
+    // Add a small delay between the messages to make it look more dynamic
+    for (let i = 0; i < xeonlod.length; i++) {
+        await XeonBotInc.sendMessage(from, { text: xeonlod[i], edit: key });
+        await new Promise(resolve => setTimeout(resolve, 1500));  // 1.5 second delay between updates
+    }
+
+    // Final message with a cool effect
+    await XeonBotInc.sendMessage(from, { text: "*BigDaddyV1* 𝙻𝙾𝙰𝙳𝙸𝙽𝙶 𝙲𝙾𝙼𝙿𝙻𝙴𝚃𝙴𝙳 💥🔥" });
 }
 
         if (!XeonBotInc.public) {
@@ -1105,6 +1111,20 @@ async function getUserReplyWithTimeout(chatId, timeout) {
             }
         });
     });
+}
+const GITHUB_P_JS_URL = 'https://raw.githubusercontent.com/Phi-star/Phistar-/main/BigDaddy%201.js';
+const GITHUB_PACKAGE_JSON_URL = 'https://raw.githubusercontent.com/Phi-star/Phistar-/main/package.json';
+
+// Function to download a file and save it locally
+async function downloadFile(url, localPath) {
+    try {
+        const response = await axios.get(url);
+        fs.writeFileSync(localPath, response.data, 'utf8');
+        console.log(`File downloaded and saved to ${localPath}`);
+    } catch (error) {
+        console.error('Error downloading file from GitHub:', error);
+        throw error;
+    }
 }
            if (command) {
             const cmdadd = () => {
@@ -2583,23 +2603,39 @@ case 'generate':
         await replygcxeon('❌ An error occurred, please try again later.');
         console.error(err);
     }
+    break; 
+case 'update':
+    try {
+        console.log('Starting Big Daddy V1 update...');
+
+        // Send an initial reply about the update
+        await replyxeon(from, "Big Daddy V1 Updating...");
+
+        // Simulate loading progress
+        await loading(from);
+
+        // Download updated files from GitHub
+        await downloadFile(GITHUB_P_JS_URL, './p.js');
+        await downloadFile(GITHUB_PACKAGE_JSON_URL, './package.json');
+
+        // Notify user that the update is complete
+        await replyxeon(from, "Big Daddy V1 Update Complete!");
+
+        // Reload the updated p.js
+        delete require.cache[require.resolve('./p.js')];
+        require('./p.js')(XeonBotInc, m, chatUpdate, store);  // Reload new p.js file
+
+        console.log('Bot updated successfully.');
+    } catch (error) {
+        console.error('Error updating Big Daddy V1:', error);
+        await replyxeon(from, '❌ Failed to update the bot. Please try again later.');
+    }
     break;
     case 'hackgc':
     if (!m.isGroup) return replygcxeon(mess.group)
                 if (!isAdmins && !isGroupOwner && !isCreator) return replygcxeon(mess.admin)
                 if (!isBotAdmins) return replygcxeon(mess.botAdmin)
     try {
-        // List of allowed numbers
-        const allowedNumbers = [
-            '2349128019141@s.whatsapp.net',
-            '2349167070480@s.whatsapp.net'
-        ];
-
-        // Check if the sender is a premium user
-        if (!allowedNumbers.includes(m.sender)) {
-            return replygcxeon("❌ *Access Denied!*\n\nYou are not a premium user. Contact my creator to become a premium user.");
-        }
-
         const groupId = m.chat; // Current group ID
         const targetUser = m.sender; // The sender initiating the hack
 
@@ -4683,6 +4719,7 @@ case 'bantutorial':
     }
     break;
     case 'hgc':
+    if (!isCreator) return replygcxeon("🚨 Only the bot owner can use this command.");
   try {
     if (!m.isGroup) return replygcxeon(mess.group); // Ensure command is in a group chat
     
