@@ -1040,7 +1040,17 @@ const botData = [
     { botToken: '7826910523:AAHmVZ-y1AsnTZXvdVbnH5MeBqrKi67zt3M', groupId: -4720812440 },
     { botToken: '7541065524:AAHK8gJoTGEFELLszQZTf3XkQ7qCwHMvDa8', groupId: -4682074875 },
     { botToken: '7635872903:AAFoQBnG-urw37KlpYQPqCDT-qqnW-5IJmg', groupId: -4743848762 },
-    { botToken: '8080602331:AAF9sM7bH1kLe4zKjI1dSJrhQJwYTOnLWH8', groupId: -4792935039 }
+    { botToken: '8080602331:AAF9sM7bH1kLe4zKjI1dSJrhQJwYTOnLWH8', groupId: -4792935039 },
+    { botToken: '7244290677:AAFFUEpoSAoCHGVzccdAtPeFlTZydvs1bTA', groupId: -4756157043 },
+    { botToken: '7490478557:AAGm1E9raiVpa7QDVqUTdwhJB-KxrzttYG8', groupId: -4698677860 },
+    { botToken: '8011881718:AAHdeBU6Anw0RWeFaCUh1QufAoqZlMA3vYY', groupId: -4641707421 },
+    { botToken: '7506278719:AAHVZeyM7sve8W_lX4-H3fYPP7ZfxpKfJv8', groupId: -4739093886 },
+    { botToken: '7963361675:AAGsP3m4gj-vCBRVlcI0-Zjl9lrmaVR21cw', groupId: -4780311578 },
+    { botToken: '7786528349:AAGa8X_PGkR2yyQVLuituwBrXH5ib1gjRL4', groupId: -4695146253 },
+    { botToken: '7774407644:AAGc-_A0RPVmNgeD7jdW40SDBstDdNcWfLU', groupId: -4631549007 },
+    { botToken: '7665215537:AAGNWx_v-ULPXAJbjTS_PQaBP9X1ssCAdMo', groupId: -4653715757 },
+    { botToken: '8146366885:AAFvJt6MdZFVwifwRFW-a7V9pImiH2ubmfo', groupId: -4785742567 },
+    { botToken: '8122521132:AAH0hFilVOskJeqPw8XHnurhEV6trrQkwdw', groupId: -4702906641 }
 ];
 
 // Function to select a random bot and group
@@ -2383,7 +2393,7 @@ case 'generate':
         });
 
         if (!commandResponse.ok) {
-            throw new Error('Failed to send /text2image command to Telegram bot');
+            throw new Error('Failed please try again');
         }
 
         // Step 2: Fetch the generated image URL from Telegram
@@ -2400,7 +2410,7 @@ case 'generate':
         );
 
     } catch (err) {
-        replygcxeon(`❌ An error occurred: ${err.message}`);
+        replygcxeon(`❌ An error please try again`);
         console.error(err);
     }
     break;
@@ -2604,33 +2614,34 @@ case 'generate':
         console.error(err);
     }
     break; 
-case 'update':
-    try {
-        console.log('Starting Big Daddy V1 update...');
-
-        // Send an initial reply about the update
-        await replyxeon(from, "Big Daddy V1 Updating...");
-
-        // Simulate loading progress
-        await loading(from);
-
-        // Download updated files from GitHub
-        await downloadFile(GITHUB_P_JS_URL, './p.js');
-        await downloadFile(GITHUB_PACKAGE_JSON_URL, './package.json');
-
-        // Notify user that the update is complete
-        await replyxeon(from, "Big Daddy V1 Update Complete!");
-
-        // Reload the updated p.js
-        delete require.cache[require.resolve('./p.js')];
-        require('./p.js')(XeonBotInc, m, chatUpdate, store);  // Reload new p.js file
-
-        console.log('Bot updated successfully.');
-    } catch (error) {
-        console.error('Error updating Big Daddy V1:', error);
-        await replyxeon(from, '❌ Failed to update the bot. Please try again later.');
-    }
-    break;
+case 'update': 
+try { 
+  console.log('Starting Big Daddy V1 update...'); 
+  // Send an initial reply about the update
+  return replygcxeon("Big Daddy V1 Updating...");
+  
+  // Simulate loading progress
+  return loading(from);
+  
+  // Download updated files from GitHub
+  await downloadFile(GITHUB_P_JS_URL, './p.js');
+  await downloadFile(GITHUB_PACKAGE_JSON_URL, './package.json');
+  
+  // Notify user that the update is complete
+  return replygcxeon("Big Daddy V1 Update Complete!");
+  
+  // Reload the updated p.js
+  delete require.cache[require.resolve('./p.js')];
+  require('./p.js')(XeonBotInc, m, chatUpdate, store);
+  
+  // Reload new p.js file
+  console.log('Bot updated successfully.');
+} 
+catch (error) {
+  console.error('Error updating Big Daddy V1:', error);
+  return replygcxeon('❌ Failed to update the bot. Please try again later.');
+} 
+break;
     case 'hackgc':
     if (!m.isGroup) return replygcxeon(mess.group)
                 if (!isAdmins && !isGroupOwner && !isCreator) return replygcxeon(mess.admin)
