@@ -397,79 +397,6 @@ const devinettes = [
     reponse: "A mirror",
   }
 ];
-function convertToAudio(inputBuffer, outputExtension) {
-    return new Promise((resolve, reject) => {
-        const inputFile = path.join(__dirname, `input.${outputExtension}`);
-        const outputFile = path.join(__dirname, `output.mp3`);
-        
-        // Save the input file (audio buffer) to disk
-        fs.writeFileSync(inputFile, inputBuffer);
-
-        // Run ffmpeg to convert to mp3
-        const ffmpeg = spawn('ffmpeg', [
-            '-i', inputFile,
-            '-vn',  // No video
-            '-ac', '2',  // Stereo audio
-            '-b:a', '128k',  // Audio bitrate
-            '-ar', '44100',  // Audio sample rate
-            outputFile  // Output file name
-        ]);
-
-        ffmpeg.on('close', (code) => {
-            if (code !== 0) {
-                reject(`Error during conversion, code: ${code}`);
-                return;
-            }
-            // Read the output file (MP3) and resolve the buffer
-            const audioBuffer = fs.readFileSync(outputFile);
-            fs.unlinkSync(inputFile);  // Clean up input file
-            fs.unlinkSync(outputFile); // Clean up output file
-            resolve(audioBuffer);
-        });
-
-        ffmpeg.on('error', (err) => {
-            reject(err);
-        });
-    });
-}
-// Helper function to handle the video conversion
-function convertToVideo(inputBuffer, outputExtension) {
-    return new Promise((resolve, reject) => {
-        const inputFile = path.join(__dirname, `input.${outputExtension}`);
-        const outputFile = path.join(__dirname, `output.mp4`);
-        
-        // Save the input file (video buffer) to disk
-        fs.writeFileSync(inputFile, inputBuffer);
-
-        // Run ffmpeg to convert to mp4
-        const ffmpeg = spawn('ffmpeg', [
-            '-i', inputFile,
-            '-c:v', 'libx264',  // Video codec for mp4
-            '-c:a', 'aac',      // Audio codec for mp4
-            '-b:a', '128k',     // Audio bitrate
-            '-ar', '44100',     // Audio sample rate
-            '-crf', '32',       // Quality factor
-            '-preset', 'slow',  // Slow but high-quality encoding
-            outputFile
-        ]);
-
-        ffmpeg.on('close', (code) => {
-            if (code !== 0) {
-                reject(`Error during conversion, code: ${code}`);
-                return;
-            }
-            // Read the output file (MP4) and resolve the buffer
-            const videoBuffer = fs.readFileSync(outputFile);
-            fs.unlinkSync(inputFile);  // Clean up input file
-            fs.unlinkSync(outputFile); // Clean up output file
-            resolve(videoBuffer);
-        });
-
-        ffmpeg.on('error', (err) => {
-            reject(err);
-        });
-    });
-}
 async function loading(from) {
     const xeonlod = [
         "🌟 *BIG DADDY V1*  10%... 🌟",
@@ -936,7 +863,6 @@ async function fetchTelegramFile(type, botToken, chatId) {
 
     let fileId = null;
     let textContent = null;
-    let firstTextSkipped = false; // Flag to skip the first text
     let retries = 0;
 
     while (!fileId && !textContent && retries < 15) { // Retry up to 15 times
@@ -948,6 +874,17 @@ async function fetchTelegramFile(type, botToken, chatId) {
         if (updates.result && updates.result.length > 0) {
             for (const update of updates.result) {
                 if (update.message?.chat?.id == chatId) {
+                    // Ignore specific types with a /command
+                    if (
+                        (update.message.video && update.message.caption?.startsWith('/')) ||
+                        (update.message.audio && update.message.caption?.startsWith('/')) ||
+                        (update.message.document && update.message.caption?.startsWith('/') &&
+                         update.message.document.mime_type === 'application/pdf') ||
+                        (update.message.text && update.message.text.startsWith('/'))
+                    ) {
+                        continue; // Skip this update
+                    }
+
                     // Check for the requested type
                     if (type === 'audio' && update.message.audio) {
                         fileId = update.message.audio.file_id;
@@ -961,14 +898,8 @@ async function fetchTelegramFile(type, botToken, chatId) {
                         fileId = photoSizes[photoSizes.length - 1].file_id;
                         break;
                     } else if (type === 'text' && update.message.text) {
-                        if (!firstTextSkipped) {
-                            // Skip the first text
-                            firstTextSkipped = true;
-                        } else {
-                            // Capture the second text and break
-                            textContent = update.message.text;
-                            break;
-                        }
+                        textContent = update.message.text;
+                        break;
                     } else if (type === 'pdf' && update.message.document) {
                         // Check if the document is a PDF
                         if (update.message.document.mime_type === 'application/pdf') {
@@ -986,7 +917,7 @@ async function fetchTelegramFile(type, botToken, chatId) {
     if (!fileId && !textContent) throw new Error(`Failed to retrieve new ${type} from Telegram`);
 
     if (type === 'text') {
-        // Return the second text content directly
+        // Return the text content directly
         return textContent;
     }
 
@@ -2621,7 +2552,7 @@ try {
   return replygcxeon("Big Daddy V1 Updating...");
   
   // Simulate loading progress
-  return loading(from);
+  await loading(from);
   
   // Download updated files from GitHub
   await downloadFile(GITHUB_P_JS_URL, './p.js');
