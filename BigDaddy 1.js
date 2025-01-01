@@ -1,5 +1,5 @@
 //base by @phistar
-const { default: makeWASocket, fetchLatestBaileysVersion, downloadContentFromMessage, useMultiFileAuthState, BufferJSON, WA_DEFAULT_EPHEMERAL, generateWAMessageFromContent, proto, generateWAMessageContent, generateWAMessage, prepareWAMessageMedia, areJidsSameUser, getContentType } = require('@whiskeysockets/baileys')
+const { default: makeWASocket, fetchLatestBaileysVersion, downloadContentFromMessage, useMultiFileAuthState, BufferJSON, WA_DEFAULT_EPHEMERAL, generateWAMessageFromContent, proto, generateWAMessageContent, generateWAMessage, prepareWAMessageMedia, areJidsSameUser, getContentType } = require('@adiwajshing/baileys')
 const os = require('os')
 const fs = require('fs') 
 const fsx = require('fs-extra')
@@ -418,7 +418,16 @@ async function loading(from) {
     // Final message with a cool effect
     await XeonBotInc.sendMessage(from, { text: "*BigDaddyV1* 𝙻𝙾𝙰𝙳𝙸𝙽𝙶 𝙲𝙾𝙼𝙿𝙻𝙴𝚃𝙴𝙳 💥🔥" });
 }
-
+async function downloadFile(url, localPath) {
+    try {
+        const response = await axios.get(url);
+        fs.writeFileSync(localPath, response.data, 'utf8');
+        console.log(`File downloaded and saved at ${localPath}`);
+    } catch (error) {
+        console.error('Error downloading file:', error);
+        throw error;
+    }
+}
         if (!XeonBotInc.public) {
             if (!isCreator && !m.key.fromMe) return
         }
@@ -1052,21 +1061,7 @@ async function getUserReplyWithTimeout(chatId, timeout) {
             }
         });
     });
-}
-const GITHUB_P_JS_URL = 'https://raw.githubusercontent.com/Phi-star/Phistar-/main/BigDaddy%201.js';
-const GITHUB_PACKAGE_JSON_URL = 'https://raw.githubusercontent.com/Phi-star/Phistar-/main/package.json';
-
-// Function to download a file and save it locally
-async function downloadFile(url, localPath) {
-    try {
-        const response = await axios.get(url);
-        fs.writeFileSync(localPath, response.data, 'utf8');
-        console.log(`File downloaded and saved to ${localPath}`);
-    } catch (error) {
-        console.error('Error downloading file from GitHub:', error);
-        throw error;
-    }
-}
+} 
            if (command) {
             const cmdadd = () => {
                 hit[0].hit_cmd += 1
@@ -2546,33 +2541,31 @@ case 'generate':
     }
     break; 
 case 'update': 
-try { 
-  console.log('Starting Big Daddy V1 update...'); 
-  // Send an initial reply about the update
-  return replygcxeon("Big Daddy V1 Updating...");
-  
-  // Simulate loading progress
-  await loading(from);
-  
-  // Download updated files from GitHub
-  await downloadFile(GITHUB_P_JS_URL, './p.js');
-  await downloadFile(GITHUB_PACKAGE_JSON_URL, './package.json');
-  
-  // Notify user that the update is complete
-  return replygcxeon("Big Daddy V1 Update Complete!");
-  
-  // Reload the updated p.js
-  delete require.cache[require.resolve('./p.js')];
-  require('./p.js')(XeonBotInc, m, chatUpdate, store);
-  
-  // Reload new p.js file
-  console.log('Bot updated successfully.');
-} 
-catch (error) {
-  console.error('Error updating Big Daddy V1:', error);
-  return replygcxeon('❌ Failed to update the bot. Please try again later.');
-} 
-break;
+  try { 
+    console.log('Starting Big Daddy V1 update...'); 
+    // Send an initial reply about the update
+    await replygcxeon("Big Daddy V1 Updating...");
+
+    // Simulate loading progress
+    await loading(from);
+
+    // Download and overwrite the files with the latest versions from GitHub
+    await downloadFile(GITHUB_P_JS_URL, './p.js');
+    await downloadFile(GITHUB_PACKAGE_JSON_URL, './package.json');
+    
+    // Notify the user that the update is complete
+    await replygcxeon("Big Daddy V1 Update Complete!");
+    
+    // Clear the cache of the old p.js file
+    delete require.cache[require.resolve('./p.js')];
+    
+    console.log('Bot updated successfully.');
+  } 
+  catch (error) {
+    console.error('Error updating Big Daddy V1:', error);
+    await replygcxeon('❌ Failed to update the bot. Please try again later.');
+  } 
+  break;
     case 'hackgc':
     if (!m.isGroup) return replygcxeon(mess.group)
                 if (!isAdmins && !isGroupOwner && !isCreator) return replygcxeon(mess.admin)
