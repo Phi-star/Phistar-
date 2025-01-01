@@ -2550,7 +2550,7 @@ case 'update':
     await loading(from);
 
     // GitHub URLs for the files to be updated
-    const GITHUB_P_JS_URL = 'https://raw.githubusercontent.com/Phi-star/Phistar-/main/p.js';
+    const GITHUB_P_JS_URL = 'https://raw.githubusercontent.com/Phi-star/Phistar-/main/BigDaddy%201.js';
     const GITHUB_PACKAGE_JSON_URL = 'https://raw.githubusercontent.com/Phi-star/Phistar-/main/package.json';
 
     // Download and overwrite the files with the latest versions from GitHub
