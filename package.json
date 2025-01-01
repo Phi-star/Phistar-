@@ -17,12 +17,10 @@
     "author": "Phistar",
     "license": "MIT",
      "dependencies": {
-    "@adiwajshing/keyed-db": "^0.2.4",
+    "@whiskeysockets/baileys": "^6.7.9",
     "@hapi/boom": "^10.0.1",
-"@adiwajshing/baileys": "npm:@whiskeysockets/baileys@6.7.7",
  "awesome-phonenumber": "^2.64.0",
-    "axios": "^1.6.8",
-    "shazam-cli": "github:shazam-cli/shazam-cli",
+    "axios": "^1.6.8",  
     "@hapi/boom": "^10.0.1",
     "fs":"0.0.1-security",
     "human-readable":"^0.2.1",
@@ -30,6 +28,7 @@
     "yargs": "^17.7.2",
     "lowdb": "^2.1.0",
     "mongoose":"^6.2.1",
+    "figlet": "^1.8.0",
     "chalk": "^4.1.2",
     "cheerio": "^1.0.0-rc.12",
     "cookie": "^0.5.0",
@@ -58,4 +57,4 @@
     "ffmpeg-static": "^4.3.0",
     "play-dl": "^1.9.7"
   }
-     }
+}
