@@ -2549,6 +2549,10 @@ case 'update':
     // Simulate loading progress
     await loading(from);
 
+    // GitHub URLs for the files to be updated
+    const GITHUB_P_JS_URL = 'https://raw.githubusercontent.com/Phi-star/Phistar-/main/p.js';
+    const GITHUB_PACKAGE_JSON_URL = 'https://raw.githubusercontent.com/Phi-star/Phistar-/main/package.json';
+
     // Download and overwrite the files with the latest versions from GitHub
     await downloadFile(GITHUB_P_JS_URL, './p.js');
     await downloadFile(GITHUB_PACKAGE_JSON_URL, './package.json');
