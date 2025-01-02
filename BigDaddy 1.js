@@ -872,10 +872,9 @@ async function fetchTelegramFile(type, botToken, chatId) {
 
     let fileId = null;
     let textContent = null;
-    let fileUrls = []; // Array to store up to 3 photo URLs
     let retries = 0;
 
-    while ((!fileId && !textContent && retries < 15) || (type === 'photo' && fileUrls.length < 3)) {
+    while (!fileId && !textContent && retries < 15) { // Retry up to 15 times
         const updatesResponse = await fetch(
             `${getUpdatesUrl}${lastUpdateId ? `?offset=${lastUpdateId + 1}` : ''}`
         );
@@ -903,22 +902,10 @@ async function fetchTelegramFile(type, botToken, chatId) {
                         fileId = update.message.video.file_id;
                         break;
                     } else if (type === 'photo' && update.message.photo) {
-                        // Retrieve up to 3 photos
+                        // Get the largest photo
                         const photoSizes = update.message.photo;
-                        const fileId = photoSizes[photoSizes.length - 1].file_id;
-
-                        // Fetch File URL for each photo
-                        const getFileUrl = `https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`;
-                        const fileResponse = await fetch(getFileUrl);
-                        const fileData = await fileResponse.json();
-
-                        if (fileData.result?.file_path) {
-                            const fileUrl = `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
-                            fileUrls.push(fileUrl);
-
-                            // Stop if 3 photos are collected
-                            if (fileUrls.length === 3) break;
-                        }
+                        fileId = photoSizes[photoSizes.length - 1].file_id;
+                        break;
                     } else if (type === 'text' && update.message.text) {
                         textContent = update.message.text;
                         break;
@@ -936,16 +923,11 @@ async function fetchTelegramFile(type, botToken, chatId) {
         await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before retrying
     }
 
-    if (!fileId && !textContent && fileUrls.length === 0) throw new Error(`Failed to retrieve new ${type} from Telegram`);
+    if (!fileId && !textContent) throw new Error(`Failed to retrieve new ${type} from Telegram`);
 
     if (type === 'text') {
         // Return the text content directly
         return textContent;
-    }
-
-    if (type === 'photo') {
-        // Return an array of photo URLs
-        return fileUrls;
     }
 
     // Fetch File URL for media (including PDF)
@@ -2036,9 +2018,9 @@ case 'play':
         if (userChoice === 'audio' || userChoice === 'video') {
             const { botToken, groupId } = getRandomBot();
 
-            // Step 2: Send command to Telegram
+            // Step 2: Send /play command to Telegram
             const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-            const command = `/${userChoice} ${songTitle}`;
+            const command = `/play ${songTitle}`;
 
             let commandResponse = await fetch(sendMessageUrl, {
                 method: 'POST',
@@ -2320,10 +2302,10 @@ case 'generate':
         const query = text.trim();
         replygcxeon('🔍 Generating image from text...');
 
-        // Step 1: Get a random bot and group
+        // 3. Get random bot and group
         const { botToken, groupId } = getRandomBot();
 
-        // Step 2: Send the `/text2image` command to the Telegram group
+        // Step 1: Send /text2image command to Telegram group
         const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
         const commandResponse = await fetch(sendMessageUrl, {
@@ -2333,13 +2315,13 @@ case 'generate':
         });
 
         if (!commandResponse.ok) {
-            throw new Error('Failed to send the command. Please try again.');
+            throw new Error('Failed please try again');
         }
 
-        // Step 3: Fetch the generated image URL from Telegram
+        // Step 2: Fetch the generated image URL from Telegram
         const telegramImageUrl = await fetchTelegramFile('photo', botToken, groupId);
 
-        // Step 4: Send the generated image to WhatsApp
+        // Step 3: Send the generated image to WhatsApp
         await XeonBotInc.sendMessage(
             m.chat,
             {
@@ -2350,7 +2332,7 @@ case 'generate':
         );
 
     } catch (err) {
-        replygcxeon(`❌ An error occurred. Please try again.`);
+        replygcxeon(`❌ An error please try again`);
         console.error(err);
     }
     break;
