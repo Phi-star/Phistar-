@@ -1960,6 +1960,8 @@ case 'play':
     break;
     case 'music':
     try {
+        global.userSessions = global.userSessions || {};
+
         if (!text) return replygcxeon('❌ Please specify a song or artist name! Usage: play <song name>');
 
         const query = text.trim();
@@ -1982,6 +1984,10 @@ case 'play':
         const songUrl = `https://www.youtube.com/watch?v=${videoId}`;
         const thumbnail = song.snippet.thumbnails.high.url;
 
+        // Notify user and wait for response
+        const userId = m.sender;
+        global.userSessions[userId] = { songTitle, videoId };
+
         await XeonBotInc.sendMessage(
             m.chat,
             {
@@ -1994,74 +2000,57 @@ case 'play':
             { quoted: m }
         );
 
-        // Wait for the user's reply
-        const filter = (reply) => reply.key.fromMe === false && ['audio', 'video'].includes(reply.message.conversation.toLowerCase());
-        const userReply = await XeonBotInc.waitForMessage(m.chat, filter, 30000); // Wait for 30 seconds
+        // Wait for user's response
+        const waitForResponse = async () => {
+            return new Promise(resolve => {
+                const interval = setInterval(() => {
+                    const session = global.userSessions[userId];
+                    if (session && session.choice) {
+                        clearInterval(interval);
+                        resolve(session.choice);
+                    }
+                }, 1000);
+            });
+        };
 
-        if (!userReply) {
-            return replygcxeon('❌ No response received. Please try again.');
-        }
+        const userChoice = await waitForResponse();
 
-        const userChoice = userReply.message.conversation.toLowerCase();
-
-        if (userChoice === 'audio') {
-            // Step 2: Get random bot and group for audio
+        if (userChoice === 'audio' || userChoice === 'video') {
             const { botToken, groupId } = getRandomBot();
 
-            // Step 2a: Send /play to Telegram for audio
+            // Step 2: Send command to Telegram
             const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+            const command = `/${userChoice} ${songTitle}`;
 
             let commandResponse = await fetch(sendMessageUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: groupId, text: `/play ${songTitle}` }),
+                body: JSON.stringify({ chat_id: groupId, text: command }),
             });
 
             if (!commandResponse.ok) throw new Error('Failed, please try again.');
 
-            // Fetch and process audio
-            const audioFileUrl = await fetchTelegramFile('audio', botToken, groupId);
-            await XeonBotInc.sendMessage(
-                m.chat,
-                {
-                    audio: { url: audioFileUrl },
-                    mimetype: 'audio/mp4',
-                    caption: `*🎶 Now Playing Audio: ${songTitle} 🎶*\n\n*Enjoy the music! 🎧*`
-                },
-                { quoted: m }
-            );
-        } else if (userChoice === 'video') {
-            // Step 2: Get random bot and group for video
-            const { botToken, groupId } = getRandomBot();
+            // Fetch and send the requested media
+            const mediaUrl = await fetchTelegramFile(userChoice, botToken, groupId);
 
-            // Step 2b: Send /video to Telegram
-            const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+            const messageType = userChoice === 'audio' ? 'audio' : 'video';
+            const messageContent = {
+                [messageType]: { url: mediaUrl },
+                caption: `*🎶 Now Playing ${userChoice.charAt(0).toUpperCase() + userChoice.slice(1)}: ${songTitle} 🎶*\n\n*Enjoy!*`
+            };
 
-            let commandResponse = await fetch(sendMessageUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: groupId, text: `/video ${songTitle}` }),
-            });
+            if (userChoice === 'audio') messageContent.mimetype = 'audio/mp4';
 
-            if (!commandResponse.ok) throw new Error('Failed, please try again.');
-
-            // Fetch and process video
-            const videoFileUrl = await fetchTelegramFile('video', botToken, groupId);
-            await XeonBotInc.sendMessage(
-                m.chat,
-                {
-                    video: { url: videoFileUrl },
-                    caption: `*🎥 Now Playing Video: ${songTitle} 🎥*\n\n*Enjoy watching! 🍿*`
-                },
-                { quoted: m }
-            );
+            await XeonBotInc.sendMessage(m.chat, messageContent, { quoted: m });
         } else {
             return replygcxeon('❌ Invalid response. Please reply with *audio* or *video*.');
         }
-
     } catch (err) {
         replygcxeon(`❌ An error occurred. Please try again.`);
         console.error(err);
+    } finally {
+        // Clean up session
+        delete global.userSessions[m.sender];
     }
     break;
     case 'song':
@@ -2329,22 +2318,19 @@ case 'generate':
             throw new Error('Failed to send the image generation command. Please try again.');
         }
 
-        // Step 3: Wait for three unique images from Telegram
+        // Step 3: Wait for three unique images
         const imageUrls = [];
         const fetchedFileIds = new Set(); // To store fetched file IDs and avoid duplicates
 
         while (imageUrls.length < 3) {
-            const imageUrlData = await fetchTelegramFileWithId('photo', botToken, groupId); // Fetch with file ID
-            const { fileId, fileUrl } = imageUrlData;
+            const telegramImageUrl = await fetchTelegramFile('photo', botToken, groupId);
 
-            if (!fileId || !fileUrl) {
-                throw new Error('Failed to fetch an image. Please try again.');
-            }
+            // Extract the file ID from the URL for uniqueness checking
+            const fileId = telegramImageUrl.split('/').pop();
 
-            // Check if the file ID is already fetched
             if (!fetchedFileIds.has(fileId)) {
-                fetchedFileIds.add(fileId); // Add new file ID to the set
-                imageUrls.push(fileUrl); // Add the unique file URL
+                fetchedFileIds.add(fileId); // Add the file ID to the set
+                imageUrls.push(telegramImageUrl); // Add the unique image URL
             }
         }
 
