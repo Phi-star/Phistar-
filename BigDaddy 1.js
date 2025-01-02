@@ -1986,7 +1986,7 @@ case 'play':
 
         // Notify user and wait for response
         const userId = m.sender;
-        global.userSessions[userId] = { songTitle, videoId };
+        global.userSessions[userId] = { songTitle, videoId, status: 'waiting_for_choice' };
 
         await XeonBotInc.sendMessage(
             m.chat,
@@ -2005,7 +2005,7 @@ case 'play':
             return new Promise(resolve => {
                 const interval = setInterval(() => {
                     const session = global.userSessions[userId];
-                    if (session && session.choice) {
+                    if (session && session.status === 'received_choice') {
                         clearInterval(interval);
                         resolve(session.choice);
                     }
@@ -2016,9 +2016,8 @@ case 'play':
         const userChoice = await waitForResponse();
 
         if (userChoice === 'audio' || userChoice === 'video') {
+            // Step 2: Send /play command to Telegram group
             const { botToken, groupId } = getRandomBot();
-
-            // Step 2: Send /play command to Telegram
             const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
             const command = `/play ${songTitle}`;
 
@@ -2030,7 +2029,7 @@ case 'play':
 
             if (!commandResponse.ok) throw new Error('Failed, please try again.');
 
-            // Fetch and send the requested media
+            // Fetch and send the requested media (audio or video)
             const mediaUrl = await fetchTelegramFile(userChoice, botToken, groupId);
 
             const messageType = userChoice === 'audio' ? 'audio' : 'video';
@@ -2049,8 +2048,28 @@ case 'play':
         replygcxeon(`❌ An error occurred. Please try again.`);
         console.error(err);
     } finally {
-        // Clean up session
+        // Clean up session after the interaction is complete
         delete global.userSessions[m.sender];
+    }
+    break;
+
+case 'audio':
+case 'video':
+    try {
+        const userId = m.sender;
+        const session = global.userSessions[userId];
+
+        if (!session || session.status !== 'waiting_for_choice') {
+            // Do nothing here, no reply
+            return;
+        }
+
+        session.choice = m.text.trim().toLowerCase();
+        session.status = 'received_choice';
+
+        // No reply needed here, just process the choice
+    } catch (err) {
+        console.error(err);
     }
     break;
     case 'song':
