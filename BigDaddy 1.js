@@ -2320,7 +2320,7 @@ case 'generate':
 
         // Step 3: Wait for three unique images
         const imageUrls = [];
-        const fetchedFileIds = new Set(); // To track unique images
+        const fetchedFileIds = new Set(); // To track unique file IDs
 
         while (imageUrls.length < 3) {
             const telegramImageUrl = await fetchTelegramFile('photo', botToken, groupId);
