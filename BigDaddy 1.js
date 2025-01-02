@@ -420,8 +420,8 @@ async function loading(from) {
 }
 async function downloadFile(url, localPath) {
     try {
-        const response = await axios.get(url);
-        fs.writeFileSync(localPath, response.data, 'utf8');
+        const response = await axios.get(url, { responseType: 'text' }); // Ensure response is plain text
+        fs.writeFileSync(localPath, response.data, 'utf8'); // Write the data as a UTF-8 string
         console.log(`File downloaded and saved at ${localPath}`);
     } catch (error) {
         console.error('Error downloading file:', error);
