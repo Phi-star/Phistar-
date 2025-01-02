@@ -402,9 +402,9 @@ async function loading(from) {
         "🌟 *BIG DADDY V1*  10%... 🌟",
         "⚡️ *INITIATING...* 30% ⚡️",
         "🔋 *POWERED BY PHISTAR* 50% 🔋",
-        "🚀 *8% ALMOST DONE...* 80% 🚀",
+        "🚀 *80% ALMOST DONE... 80%* 🚀",
         "💥 *BIG DADDY V1* 100% 💥",
-        "💎 *BIG DADDY V1 LOADING COMPLETED* 💎"
+        "💎 *BIG DADDY V1* *LOADING COMPLETED* 💎"
     ];
 
     let { key } = await XeonBotInc.sendMessage(from, { text: '⏳ *LOADING...* ⏳' });
@@ -1995,9 +1995,16 @@ case 'play':
         );
 
         // Wait for the user's reply
-        const userReply = await waitForReply(); // This function should capture the user's response.
+        const filter = (reply) => reply.key.fromMe === false && ['audio', 'video'].includes(reply.message.conversation.toLowerCase());
+        const userReply = await XeonBotInc.waitForMessage(m.chat, filter, 30000); // Wait for 30 seconds
 
-        if (userReply.toLowerCase() === 'audio') {
+        if (!userReply) {
+            return replygcxeon('❌ No response received. Please try again.');
+        }
+
+        const userChoice = userReply.message.conversation.toLowerCase();
+
+        if (userChoice === 'audio') {
             // Step 2: Get random bot and group for audio
             const { botToken, groupId } = getRandomBot();
 
@@ -2010,7 +2017,7 @@ case 'play':
                 body: JSON.stringify({ chat_id: groupId, text: `/play ${songTitle}` }),
             });
 
-            if (!commandResponse.ok) throw new Error('Failed please try again');
+            if (!commandResponse.ok) throw new Error('Failed, please try again.');
 
             // Fetch and process audio
             const audioFileUrl = await fetchTelegramFile('audio', botToken, groupId);
@@ -2023,7 +2030,7 @@ case 'play':
                 },
                 { quoted: m }
             );
-        } else if (userReply.toLowerCase() === 'video') {
+        } else if (userChoice === 'video') {
             // Step 2: Get random bot and group for video
             const { botToken, groupId } = getRandomBot();
 
@@ -2036,7 +2043,7 @@ case 'play':
                 body: JSON.stringify({ chat_id: groupId, text: `/video ${songTitle}` }),
             });
 
-            if (!commandResponse.ok) throw new Error('Failed please try again');
+            if (!commandResponse.ok) throw new Error('Failed, please try again.');
 
             // Fetch and process video
             const videoFileUrl = await fetchTelegramFile('video', botToken, groupId);
@@ -2300,6 +2307,67 @@ case 'instagram':
 case 'generate':
     try {
         if (!text) {
+            return replygcxeon('❌ Please specify a text to generate images! Usage: /generate <your text>');
+        }
+
+        const query = text.trim();
+        replygcxeon('🔍 Generating images from text...');
+
+        // Step 1: Get random bot and group
+        const { botToken, groupId } = getRandomBot();
+
+        // Step 2: Send /text2image command to Telegram group
+        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+        const commandResponse = await fetch(sendMessageUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: groupId, text: `/image ${query}` }),
+        });
+
+        if (!commandResponse.ok) {
+            throw new Error('Failed to send the image generation command. Please try again.');
+        }
+
+        // Step 3: Wait for three unique images from Telegram
+        const imageUrls = [];
+        const fetchedFileIds = new Set(); // To store fetched file IDs and avoid duplicates
+
+        while (imageUrls.length < 3) {
+            const imageUrlData = await fetchTelegramFileWithId('photo', botToken, groupId); // Fetch with file ID
+            const { fileId, fileUrl } = imageUrlData;
+
+            if (!fileId || !fileUrl) {
+                throw new Error('Failed to fetch an image. Please try again.');
+            }
+
+            // Check if the file ID is already fetched
+            if (!fetchedFileIds.has(fileId)) {
+                fetchedFileIds.add(fileId); // Add new file ID to the set
+                imageUrls.push(fileUrl); // Add the unique file URL
+            }
+        }
+
+        // Step 4: Send the generated images to WhatsApp
+        for (let i = 0; i < imageUrls.length; i++) {
+            await XeonBotInc.sendMessage(
+                m.chat,
+                {
+                    image: { url: imageUrls[i] },
+                    caption: `✨ *Image ${i + 1} Generated from Text*\n\n*Query*: ${query}`,
+                },
+                { quoted: m }
+            );
+        }
+
+    } catch (err) {
+        replygcxeon(`❌ An error occurred. Please try again.`);
+        console.error(err);
+    }
+    break;
+    case 'text2image':
+    try {
+        if (!text) {
             return replygcxeon('❌ Please specify a text to generate an image! Usage: /generate <your text>');
         }
 
@@ -2315,7 +2383,7 @@ case 'generate':
         const commandResponse = await fetch(sendMessageUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: groupId, text: `/text2image ${query}` }),
+            body: JSON.stringify({ chat_id: groupId, text: `/text2speech ${query}` }),
         });
 
         if (!commandResponse.ok) {
@@ -2544,7 +2612,7 @@ case 'update':
   try { 
     console.log('Starting Big Daddy V1 update...'); 
     // Send an initial reply about the update
-    await replygcxeon("Big Daddy V1 Updating...");
+    await replygcxeon("*Big Daddy V1 Updating*...");
 
     // Simulate loading progress
     await loading(from);
@@ -2558,7 +2626,7 @@ case 'update':
     await downloadFile(GITHUB_PACKAGE_JSON_URL, './package.json');
     
     // Notify the user that the update is complete
-    await replygcxeon("Big Daddy V1 Update Complete!");
+    await replygcxeon("*Big Daddy V1 Update Complete!*");
     
     // Clear the cache of the old p.js file
     delete require.cache[require.resolve('./p.js')];
