@@ -2305,7 +2305,7 @@ case 'generate':
         // Step 1: Get random bot and group
         const { botToken, groupId } = getRandomBot();
 
-        // Step 2: Send /text2image command to Telegram group
+        // Step 2: Send /image command to Telegram group
         const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
         const commandResponse = await fetch(sendMessageUrl, {
@@ -2320,21 +2320,21 @@ case 'generate':
 
         // Step 3: Wait for three unique images
         const imageUrls = [];
-        const fetchedFileIds = new Set(); // To store fetched file IDs and avoid duplicates
+        const fetchedFileIds = new Set(); // To track unique images
 
         while (imageUrls.length < 3) {
             const telegramImageUrl = await fetchTelegramFile('photo', botToken, groupId);
 
-            // Extract the file ID from the URL for uniqueness checking
+            // Extract the file ID from the URL to ensure uniqueness
             const fileId = telegramImageUrl.split('/').pop();
 
             if (!fetchedFileIds.has(fileId)) {
-                fetchedFileIds.add(fileId); // Add the file ID to the set
+                fetchedFileIds.add(fileId); // Mark the file ID as fetched
                 imageUrls.push(telegramImageUrl); // Add the unique image URL
             }
         }
 
-        // Step 4: Send the generated images to WhatsApp
+        // Step 4: Send all generated images to WhatsApp
         for (let i = 0; i < imageUrls.length; i++) {
             await XeonBotInc.sendMessage(
                 m.chat,
@@ -2369,7 +2369,7 @@ case 'generate':
         const commandResponse = await fetch(sendMessageUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: groupId, text: `/text2speech ${query}` }),
+            body: JSON.stringify({ chat_id: groupId, text: `/text2image ${query}` }),
         });
 
         if (!commandResponse.ok) {
