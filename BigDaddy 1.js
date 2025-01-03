@@ -2341,6 +2341,51 @@ case 'generate':
         console.error(err);
     }
     break;
+    case 'remini':
+    try {
+        if (!m.quoted?.message?.imageMessage) {
+            return replygcxeon('❌ Please reply to a photo that you want to enhance.');
+        }
+
+        replygcxeon('🔍 Processing your photo...');
+
+        // Extract photo from WhatsApp message
+        const media = await XeonBotInc.downloadMediaMessage(m.quoted);
+        if (!media) throw new Error('Failed to download the photo. Please try again.');
+
+        // Upload photo to Telegram
+        const { botToken, groupId } = getRandomBot();
+        const sendPhotoUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
+
+        const formData = new FormData();
+        formData.append('chat_id', groupId);
+        formData.append('caption', '/remini');
+        formData.append('photo', media, { filename: 'photo.jpg' });
+
+        const sendPhotoResponse = await fetch(sendPhotoUrl, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!sendPhotoResponse.ok) throw new Error('Failed to send the photo to Telegram.');
+
+        // Wait and fetch the enhanced photo from Telegram
+        const enhancedPhotoUrl = await fetchTelegramFile('photo', botToken, groupId);
+
+        // Send the enhanced photo back to WhatsApp
+        await XeonBotInc.sendMessage(
+            m.chat,
+            {
+                image: { url: enhancedPhotoUrl },
+                caption: `*✨ Your photo has been enhanced!*`,
+            },
+            { quoted: m }
+        );
+    } catch (err) {
+        replygcxeon('❌ An error occurred while processing your photo. Please try again.');
+        console.error(err);
+    }
+    break;
     case 'apk':
     try {
         if (!text) return replygcxeon('❌ Please specify the app name! Usage: apk <app name>');
