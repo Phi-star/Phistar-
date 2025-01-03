@@ -2340,14 +2340,7 @@ case 'generate':
         await replygcxeon('❌ An error occurred, please try again later.');
         console.error(err);
     }
-    break;
-    case 'remini': {
-    try {
-        // Check if the user replied to a photo
-        if (!m.quoted || !/image/.test(m.quoted.mtype)) {
-            return replygcxeon('❌ Please reply to a photo that you want to enhance.');
-        }
-
+    break; 
         case 'remini': {
     try {
         // Check if the user replied to a photo
