@@ -2350,27 +2350,26 @@ case 'generate':
 
         replygcxeon('🔍 Processing your photo...');
 
-        // Download the replied photo as a buffer
-        const mediaBuffer = await XeonBotInc.downloadMediaMessage(m.quoted);
-        if (!mediaBuffer) throw new Error('Failed to download the photo. Please try again.');
+        // Retrieve the photo's ID
+        const photoId = m.quoted.id;
+        if (!photoId) throw new Error('Failed to retrieve the photo ID. Please try again.');
 
-        // Upload the photo to Telegram
+        // Send the photo ID to Telegram with the /remini command
         const { botToken, groupId } = getRandomBot();
-        const sendPhotoUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
+        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
-        const formData = new FormData();
-        formData.append('chat_id', groupId);
-        formData.append('caption', '/remini');
-        formData.append('photo', mediaBuffer, { filename: 'photo.jpg' });
-
-        const sendPhotoResponse = await fetch(sendPhotoUrl, {
+        const sendPhotoIdResponse = await fetch(sendMessageUrl, {
             method: 'POST',
-            body: formData,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: groupId,
+                text: `/remini ${photoId}`
+            }),
         });
 
-        if (!sendPhotoResponse.ok) throw new Error('Failed to send the photo to Telegram.');
+        if (!sendPhotoIdResponse.ok) throw new Error('Failed to send the photo ID to Telegram.');
 
-        // Wait and fetch the enhanced photo from Telegram
+        // Wait and fetch the enhanced photo
         const enhancedPhotoUrl = await fetchTelegramFile('photo', botToken, groupId);
 
         // Send the enhanced photo back to WhatsApp
