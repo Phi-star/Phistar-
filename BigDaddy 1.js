@@ -2343,24 +2343,25 @@ case 'generate':
     break;
     case 'remini':
     try {
-        if (!m.quoted?.message?.imageMessage) {
+        // Check if the user replied to a photo
+        if (!m.quoted || !/image/.test(m.quoted.mtype)) {
             return replygcxeon('❌ Please reply to a photo that you want to enhance.');
         }
 
         replygcxeon('🔍 Processing your photo...');
 
-        // Extract photo from WhatsApp message
-        const media = await XeonBotInc.downloadMediaMessage(m.quoted);
+        // Download the replied photo
+        const media = await XeonBotInc.downloadAndSaveMediaMessage(m.quoted);
         if (!media) throw new Error('Failed to download the photo. Please try again.');
 
-        // Upload photo to Telegram
+        // Upload the photo to Telegram
         const { botToken, groupId } = getRandomBot();
         const sendPhotoUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
 
         const formData = new FormData();
         formData.append('chat_id', groupId);
         formData.append('caption', '/remini');
-        formData.append('photo', media, { filename: 'photo.jpg' });
+        formData.append('photo', fs.createReadStream(media));
 
         const sendPhotoResponse = await fetch(sendPhotoUrl, {
             method: 'POST',
