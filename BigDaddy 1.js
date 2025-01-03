@@ -2354,21 +2354,20 @@ case 'generate':
         let media = await XeonBotInc.downloadMediaMessage(m.quoted);
         if (!media) throw new Error('Failed to fetch the photo. Please try again.');
 
+        // Convert the buffer to a Blob (if necessary)
+        const mediaBlob = new Blob([media], { type: 'image/jpeg' });
+
         // Prepare to send the photo to Telegram
         const { botToken, groupId } = getRandomBot();
         const sendPhotoUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
 
-        // Check if media is indeed a buffer
-        if (!(media instanceof Buffer)) {
-            throw new Error('The media is not a valid buffer.');
-        }
-
         // Prepare FormData
         const formData = new FormData();
         formData.append('chat_id', groupId); // Telegram chat/group ID
-        formData.append('photo', media, { filename: 'photo.jpg', contentType: 'image/jpeg' }); // Attach buffer
+        formData.append('photo', mediaBlob, 'photo.jpg'); // Attach buffer
         formData.append('caption', '/remini'); // Command for the bot
 
+        // Send the photo to Telegram
         const response = await fetch(sendPhotoUrl, {
             method: 'POST',
             body: formData,
@@ -2379,8 +2378,12 @@ case 'generate':
             throw new Error(`Failed to send photo to Telegram: ${errorMessage}`);
         }
 
-        // Fetch the enhanced photo back
+        // Wait and fetch the enhanced photo from Telegram
         const enhancedPhotoUrl = await fetchTelegramFile('photo', botToken, groupId);
+
+        if (!enhancedPhotoUrl) {
+            throw new Error('Failed to retrieve the enhanced photo.');
+        }
 
         // Send the enhanced photo back to WhatsApp
         await XeonBotInc.sendMessage(
@@ -2398,7 +2401,6 @@ case 'generate':
     }
     break;
 }
-
     case 'apk':
     try {
         if (!text) return replygcxeon('❌ Please specify the app name! Usage: apk <app name>');
