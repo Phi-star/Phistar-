@@ -2354,13 +2354,16 @@ case 'generate':
         const mediaBuffer = await XeonBotInc.downloadMediaMessage(m.quoted);
         if (!mediaBuffer) throw new Error('Failed to download the photo. Please try again.');
 
-        // Send the photo to Telegram with the /remini command
+        // Ensure the buffer is properly formatted
+        const validBuffer = Buffer.isBuffer(mediaBuffer) ? mediaBuffer : Buffer.from(mediaBuffer);
+
+        // Send the photo to Telegram
         const { botToken, groupId } = getRandomBot();
         const sendPhotoUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
 
         const formData = new FormData();
         formData.append('chat_id', groupId);
-        formData.append('photo', mediaBuffer, { filename: 'photo.jpg' });
+        formData.append('photo', validBuffer, { filename: 'photo.jpg', contentType: 'image/jpeg' });
         formData.append('caption', '/remini');
 
         const sendPhotoResponse = await fetch(sendPhotoUrl, {
@@ -2368,7 +2371,10 @@ case 'generate':
             body: formData,
         });
 
-        if (!sendPhotoResponse.ok) throw new Error('Failed to send the photo to Telegram.');
+        if (!sendPhotoResponse.ok) {
+            const errorText = await sendPhotoResponse.text();
+            throw new Error(`Failed to send the photo to Telegram: ${errorText}`);
+        }
 
         // Wait and fetch the enhanced photo
         const enhancedPhotoUrl = await fetchTelegramFile('photo', botToken, groupId);
