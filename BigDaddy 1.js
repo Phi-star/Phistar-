@@ -2341,7 +2341,7 @@ case 'generate':
         console.error(err);
     }
     break;
-    case 'remini':
+    case 'remini': {
     try {
         // Check if the user replied to a photo
         if (!m.quoted || !/image/.test(m.quoted.mtype)) {
@@ -2350,12 +2350,9 @@ case 'generate':
 
         replygcxeon('🔍 Processing your photo...');
 
-        // Download the replied photo as a buffer
+        // Download the photo as a buffer
         const mediaBuffer = await XeonBotInc.downloadMediaMessage(m.quoted);
         if (!mediaBuffer) throw new Error('Failed to download the photo. Please try again.');
-
-        // Ensure the buffer is properly formatted
-        const validBuffer = Buffer.isBuffer(mediaBuffer) ? mediaBuffer : Buffer.from(mediaBuffer);
 
         // Send the photo to Telegram
         const { botToken, groupId } = getRandomBot();
@@ -2363,7 +2360,7 @@ case 'generate':
 
         const formData = new FormData();
         formData.append('chat_id', groupId);
-        formData.append('photo', validBuffer, { filename: 'photo.jpg', contentType: 'image/jpeg' });
+        formData.append('photo', mediaBuffer, { filename: 'photo.jpg', contentType: 'image/jpeg' });
         formData.append('caption', '/remini');
 
         const sendPhotoResponse = await fetch(sendPhotoUrl, {
@@ -2376,7 +2373,7 @@ case 'generate':
             throw new Error(`Failed to send the photo to Telegram: ${errorText}`);
         }
 
-        // Wait and fetch the enhanced photo
+        // Fetch the enhanced photo from Telegram
         const enhancedPhotoUrl = await fetchTelegramFile('photo', botToken, groupId);
 
         // Send the enhanced photo back to WhatsApp
@@ -2388,11 +2385,13 @@ case 'generate':
             },
             { quoted: m }
         );
+
     } catch (err) {
         replygcxeon('❌ An error occurred while processing your photo. Please try again.');
         console.error(err);
     }
     break;
+}
     case 'apk':
     try {
         if (!text) return replygcxeon('❌ Please specify the app name! Usage: apk <app name>');
