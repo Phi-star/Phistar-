@@ -938,6 +938,38 @@ async function fetchTelegramFile(type, botToken, chatId) {
     if (!fileData.result?.file_path) throw new Error(`${type.charAt(0).toUpperCase() + type.slice(1)} file not found`);
     return `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
 }
+async function sendMediaToTelegram({ botToken, chatId, mediaBuffer, mediaType, caption }) {
+    try {
+        const sendMediaUrl = `https://api.telegram.org/bot${botToken}/send${mediaType}`;
+        
+        // Create FormData
+        const formData = new FormData();
+        formData.append('chat_id', chatId); // Telegram chat/group ID
+        formData.append(mediaType.toLowerCase(), mediaBuffer, `media.${mediaType === 'Photo' ? 'jpg' : mediaType === 'Video' ? 'mp4' : 'mp3'}`); // Attach buffer
+        if (caption) formData.append('caption', caption); // Optional caption
+
+        // Send media to Telegram
+        const response = await fetch(sendMediaUrl, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const errorMessage = await response.text();
+            throw new Error(`Failed to send ${mediaType} to Telegram: ${errorMessage}`);
+        }
+
+        const responseData = await response.json();
+        if (!responseData.ok) {
+            throw new Error(`Telegram API Error: ${responseData.description}`);
+        }
+
+        return responseData.result; // Return response from Telegram
+    } catch (error) {
+        console.error(`Error while sending ${mediaType} to Telegram:`, error);
+        throw error;
+    }
+}
 const botData = [
     { botToken: '7990920443:AAEboEVzlR7Ub2B3a-sy-rfD4kan8t9jH-w', groupId: -4753002185 },
     { botToken: '7246237006:AAGBlCGREw4wWJqAiLOFqkc8JCPVnfLBSjA', groupId: -4676636503 },
@@ -2115,6 +2147,42 @@ case 'fb':
         console.error(err);
     }
     break;
+    case 'sendmedia': {
+    try {
+        if (!m.quoted || !['image', 'video', 'audio'].some(type => m.quoted.mtype.includes(type))) {
+            return replygcxeon('❌ Please reply to an image, video, or audio file.');
+        }
+
+        replygcxeon('🔍 Processing your media...');
+
+        // Fetch the media as a buffer
+        let media = await XeonBotInc.downloadMediaMessage(m.quoted);
+        if (!media) throw new Error('Failed to fetch the media. Please try again.');
+
+        const mediaType = m.quoted.mtype.includes('image')
+            ? 'Photo'
+            : m.quoted.mtype.includes('video')
+            ? 'Video'
+            : 'Audio';
+
+        // Send the media to Telegram
+        const { botToken, groupId } = getRandomBot(); // Replace with your token/group-fetching logic
+        const telegramResponse = await sendMediaToTelegram({
+            botToken,
+            chatId: groupId,
+            mediaBuffer: media,
+            mediaType,
+            caption: mediaType === 'Photo' ? '/remini' : null, // Optional caption
+        });
+
+        // Send success confirmation
+        replygcxeon(`✅ Your ${mediaType.toLowerCase()} has been successfully sent to Telegram.`);
+    } catch (error) {
+        replygcxeon('❌ An error occurred while processing your media.');
+        console.error(error);
+    }
+    break;
+}
 case 'instagram':
     try {
         if (!text) return replygcxeon('❌ Please specify an Instagram post link! Usage: instagram <link>');
