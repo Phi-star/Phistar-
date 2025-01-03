@@ -2350,9 +2350,9 @@ case 'generate':
 
         replygcxeon('🔍 Processing your photo...');
 
-        // Download the replied photo
-        const media = await XeonBotInc.downloadAndSaveMediaMessage(m.quoted);
-        if (!media) throw new Error('Failed to download the photo. Please try again.');
+        // Download the replied photo as a buffer
+        const mediaBuffer = await XeonBotInc.downloadMediaMessage(m.quoted);
+        if (!mediaBuffer) throw new Error('Failed to download the photo. Please try again.');
 
         // Upload the photo to Telegram
         const { botToken, groupId } = getRandomBot();
@@ -2361,7 +2361,7 @@ case 'generate':
         const formData = new FormData();
         formData.append('chat_id', groupId);
         formData.append('caption', '/remini');
-        formData.append('photo', fs.createReadStream(media));
+        formData.append('photo', mediaBuffer, { filename: 'photo.jpg' });
 
         const sendPhotoResponse = await fetch(sendPhotoUrl, {
             method: 'POST',
