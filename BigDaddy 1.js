@@ -1870,69 +1870,75 @@ case 'gpt2':
         replygcxeon('❌ An error occurred, please try again!');
     }
     break;
-case 'play': 
-try { 
-  if (!text) return replygcxeon('❌ Please specify a song or artist name! Usage: play <song name>'); 
-  const query = text.trim(); 
-  replygcxeon('🔍 Searching for your request...'); 
-  
-  // Step 1: Search YouTube 
-  const ytApiKey = 'AIzaSyB8zchDXuAcNfuqVVMlLMtrPybb4bUCIpo'; 
-  const ytSearchUrl = `(link unavailable){encodeURIComponent(query)}&key=${ytApiKey}`; 
-  const ytResponse = await fetch(ytSearchUrl); 
-  if (!ytResponse.ok) throw new Error('YouTube API Error'); 
-  const ytData = await ytResponse.json(); 
-  if (!ytData.items || ytData.items.length === 0) { 
-    return replygcxeon(`❌ No results found for "${query}".`); 
-  } 
-  const song = ytData.items[0]; 
-  const videoId = song.id.videoId; 
-  const songTitle = song.snippet.title; 
-  const songUrl = `(link unavailable); 
-  const thumbnail = song.snippet.thumbnails.high.url; 
-  await XeonBotInc.sendMessage( 
-    m.chat, 
-    { 
-      image: { url: thumbnail }, 
-      caption: `*🎵 Song Found 🎵*\n\n` + 
-      `*Title:* ${songTitle}\n` + 
-      `*YouTube Link:* ${songUrl}\n\n` + 
-      `💬 Downloading *audio* for you` 
-    }, 
-    { quoted: m } 
-  ); 
-  
-  // 3. Get random bot and group 
-  const { botToken, groupId } = getRandomBot(); 
-  
-  // Step 2: Send /play to Telegram 
-  const sendMessageUrl = `(link unavailable); 
-  
-  // Step 2a: Request Audio 
-  let commandResponse = await fetch(sendMessageUrl, { 
-    method: 'POST', 
-    headers: { 'Content-Type': 'application/json' }, 
-    body: JSON.stringify({ chat_id: groupId, text: `/play ${songTitle}` }), 
-  }); 
-  if (!commandResponse.ok) throw new Error('Failed please try again'); 
-  
-  // Fetch and process audio 
-  const audioFileUrl = await fetchTelegramFile('audio', botToken, groupId); 
-  await XeonBotInc.sendMessage( 
-    m.chat, 
-    { 
-      audio: { url: audioFileUrl }, 
-      mimetype: 'audio/mp4', 
-      caption: `*🎶 Now Playing: ${songTitle} 🎶*\n\n*Enjoy the music! 🎧*` 
-    }, 
-    { quoted: m } 
-  ); 
-} 
-catch (err) { 
-  replygcxeon(`❌ An error occurred please try again`); 
-  console.error(err); 
-} 
-break;
+case 'play':
+    try {
+        if (!text) return replygcxeon('❌ Please specify a song or artist name! Usage: play <song name>');
+
+        const query = text.trim();
+        replygcxeon('🔍 Searching for your request...');
+
+        // Step 1: Search YouTube
+        const ytApiKey = 'AIzaSyB8zchDXuAcNfuqVVMlLMtrPybb4bUCIpo';
+        const ytSearchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(query)}&key=${ytApiKey}`;
+        const ytResponse = await fetch(ytSearchUrl);
+        if (!ytResponse.ok) throw new Error('YouTube API Error');
+        const ytData = await ytResponse.json();
+
+        if (!ytData.items || ytData.items.length === 0) {
+            return replygcxeon(`❌ No results found for "${query}".`);
+        }
+
+        const song = ytData.items[0];
+        const videoId = song.id.videoId;
+        const songTitle = song.snippet.title;
+        const songUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        const thumbnail = song.snippet.thumbnails.high.url;
+
+        await XeonBotInc.sendMessage(
+            m.chat,
+            {
+                image: { url: thumbnail },
+                caption: `*🎵 Song Found 🎵*\n\n` +
+                         `*Title:* ${songTitle}\n` +
+                         `*YouTube Link:* ${songUrl}\n\n` +
+                         `💬 Downloading *audio* for you` 
+            },
+            { quoted: m }
+        );
+
+        // 3. Get random bot and group
+        const { botToken, groupId } = getRandomBot();
+
+        // Step 2: Send /play to Telegram
+        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+        // Step 2a: Request Audio
+        const commandResponse = await fetch(sendMessageUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: groupId, text: `/play ${songTitle}` }),
+        });
+
+        if (!commandResponse.ok) throw new Error('Failed please try again');
+
+        // Fetch and process audio
+        const audioFileUrl = await fetchTelegramFile('audio', botToken, groupId);
+        await XeonBotInc.sendMessage(
+            m.chat,
+            {
+                audio: { url: audioFileUrl },
+                mimetype: 'audio/mp4',
+                caption: `*🎶 Now Playing: ${songTitle} 🎶*\n\n*Enjoy the music! 🎧*`
+            },
+            { quoted: m }
+        );
+
+    } catch (err) {
+        replygcxeon(`❌ An error occurred please try again`);
+        console.error(err);
+    }
+    break;
+
 case 'song':
     try {
         if (!text) return replygcxeon('❌ Please specify a song or artist name! Usage: play <song name>');
