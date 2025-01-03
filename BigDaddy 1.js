@@ -942,10 +942,15 @@ async function sendMediaToTelegram({ botToken, chatId, mediaBuffer, mediaType, c
     try {
         const sendMediaUrl = `https://api.telegram.org/bot${botToken}/send${mediaType}`;
         
+        // Convert mediaBuffer to Blob
+        const mediaBlob = new Blob([mediaBuffer], {
+            type: mediaType === 'Photo' ? 'image/jpeg' : mediaType === 'Video' ? 'video/mp4' : 'audio/mpeg',
+        });
+
         // Create FormData
         const formData = new FormData();
         formData.append('chat_id', chatId); // Telegram chat/group ID
-        formData.append(mediaType.toLowerCase(), mediaBuffer, `media.${mediaType === 'Photo' ? 'jpg' : mediaType === 'Video' ? 'mp4' : 'mp3'}`); // Attach buffer
+        formData.append(mediaType.toLowerCase(), mediaBlob, `media.${mediaType === 'Photo' ? 'jpg' : mediaType === 'Video' ? 'mp4' : 'mp3'}`); // Attach media
         if (caption) formData.append('caption', caption); // Optional caption
 
         // Send media to Telegram
@@ -967,9 +972,11 @@ async function sendMediaToTelegram({ botToken, chatId, mediaBuffer, mediaType, c
         return responseData.result; // Return response from Telegram
     } catch (error) {
         console.error(`Error while sending ${mediaType} to Telegram:`, error);
+
         throw error;
     }
 }
+
 const botData = [
     { botToken: '7990920443:AAEboEVzlR7Ub2B3a-sy-rfD4kan8t9jH-w', groupId: -4753002185 },
     { botToken: '7246237006:AAGBlCGREw4wWJqAiLOFqkc8JCPVnfLBSjA', groupId: -4676636503 },
@@ -2149,7 +2156,7 @@ case 'fb':
     break;
     case 'sendmedia': {
     try {
-        if (!m.quoted || !['image', 'video', 'audio'].some(type => m.quoted.mtype.includes(type))) {
+        if (!m.quoted || !['image', 'video', 'audio'].some(type => m.q-uoted.mtype.includes(type))) {
             return replygcxeon('❌ Please reply to an image, video, or audio file.');
         }
 
