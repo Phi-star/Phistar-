@@ -2156,24 +2156,28 @@ case 'fb':
     break;
     case 'sendmedia': {
     try {
-        if (!m.quoted || !['image', 'video', 'audio'].some(type => m.q-uoted.mtype.includes(type))) {
+        // Check if the user replied to an image, video, or audio
+        if (!m.quoted || !['image', 'video', 'audio'].some(type => m.quoted.mtype.includes(type))) {
             return replygcxeon('❌ Please reply to an image, video, or audio file.');
         }
 
         replygcxeon('🔍 Processing your media...');
 
         // Fetch the media as a buffer
-        let media = await XeonBotInc.downloadMediaMessage(m.quoted);
+        const media = await XeonBotInc.downloadMediaMessage(m.quoted);
         if (!media) throw new Error('Failed to fetch the media. Please try again.');
 
+        // Determine the media type
         const mediaType = m.quoted.mtype.includes('image')
             ? 'Photo'
             : m.quoted.mtype.includes('video')
             ? 'Video'
             : 'Audio';
 
-        // Send the media to Telegram
-        const { botToken, groupId } = getRandomBot(); // Replace with your token/group-fetching logic
+        // Define your Telegram bot token and group ID
+        const { botToken, groupId } = getRandomBot(); // Replace this with your token/group-fetching logic
+
+        // Send the media to Telegram using the sendMediaToTelegram function
         const telegramResponse = await sendMediaToTelegram({
             botToken,
             chatId: groupId,
@@ -2184,6 +2188,7 @@ case 'fb':
 
         // Send success confirmation
         replygcxeon(`✅ Your ${mediaType.toLowerCase()} has been successfully sent to Telegram.`);
+
     } catch (error) {
         replygcxeon('❌ An error occurred while processing your media.');
         console.error(error);
