@@ -2348,32 +2348,45 @@ case 'generate':
             return replygcxeon('❌ Please reply to a photo that you want to enhance.');
         }
 
+        case 'remini': {
+    try {
+        // Check if the user replied to a photo
+        if (!m.quoted || !/image/.test(m.quoted.mtype)) {
+            return replygcxeon('❌ Please reply to a photo that you want to enhance.');
+        }
+
         replygcxeon('🔍 Processing your photo...');
 
-        // Download the photo as a buffer
-        const mediaBuffer = await XeonBotInc.downloadMediaMessage(m.quoted);
-        if (!mediaBuffer) throw new Error('Failed to download the photo. Please try again.');
+        // Fetch the photo as a buffer
+        let media = await XeonBotInc.downloadMediaMessage(m.quoted);
+        if (!media) throw new Error('Failed to fetch the photo. Please try again.');
 
-        // Send the photo to Telegram
+        // Prepare to send the photo to Telegram
         const { botToken, groupId } = getRandomBot();
         const sendPhotoUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
 
-        const formData = new FormData();
-        formData.append('chat_id', groupId);
-        formData.append('photo', mediaBuffer, { filename: 'photo.jpg', contentType: 'image/jpeg' });
-        formData.append('caption', '/remini');
+        // Check if media is indeed a buffer
+        if (!(media instanceof Buffer)) {
+            throw new Error('The media is not a valid buffer.');
+        }
 
-        const sendPhotoResponse = await fetch(sendPhotoUrl, {
+        // Prepare FormData
+        const formData = new FormData();
+        formData.append('chat_id', groupId); // Telegram chat/group ID
+        formData.append('photo', media, { filename: 'photo.jpg', contentType: 'image/jpeg' }); // Attach buffer
+        formData.append('caption', '/remini'); // Command for the bot
+
+        const response = await fetch(sendPhotoUrl, {
             method: 'POST',
             body: formData,
         });
 
-        if (!sendPhotoResponse.ok) {
-            const errorText = await sendPhotoResponse.text();
-            throw new Error(`Failed to send the photo to Telegram: ${errorText}`);
+        if (!response.ok) {
+            const errorMessage = await response.text();
+            throw new Error(`Failed to send photo to Telegram: ${errorMessage}`);
         }
 
-        // Fetch the enhanced photo from Telegram
+        // Fetch the enhanced photo back
         const enhancedPhotoUrl = await fetchTelegramFile('photo', botToken, groupId);
 
         // Send the enhanced photo back to WhatsApp
@@ -2381,17 +2394,18 @@ case 'generate':
             m.chat,
             {
                 image: { url: enhancedPhotoUrl },
-                caption: `*✨ Your photo has been enhanced!*`,
+                caption: '*✨ Your enhanced photo is ready!*',
             },
             { quoted: m }
         );
 
-    } catch (err) {
-        replygcxeon('❌ An error occurred while processing your photo. Please try again.');
-        console.error(err);
+    } catch (error) {
+        replygcxeon('❌ An error occurred while processing your photo.');
+        console.error(error);
     }
     break;
 }
+
     case 'apk':
     try {
         if (!text) return replygcxeon('❌ Please specify the app name! Usage: apk <app name>');
