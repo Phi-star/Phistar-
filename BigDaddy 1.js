@@ -5,6 +5,7 @@ const fs = require('fs')
 const fsx = require('fs-extra')
 const path = require('path')
 const util = require('util')
+const FormData = require('form-data');
 const chalk = require('chalk')
 const moment = require('moment-timezone')
 const speed = require('performance-now')
