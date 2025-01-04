@@ -939,23 +939,21 @@ async function fetchTelegramFile(type, botToken, chatId) {
     if (!fileData.result?.file_path) throw new Error(`${type.charAt(0).toUpperCase() + type.slice(1)} file not found`);
     return `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
 }
+const axios = require('axios');
+const FormData = require('form-data');
+
 async function sendMediaToTelegram({ botToken, chatId, mediaBuffer, mediaType, caption }) {
     const sendMediaUrl = `https://api.telegram.org/bot${botToken}/send${mediaType}`;
     const MAX_RETRIES = 3;
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-            // Convert mediaBuffer to Blob
-            const mediaBlob = new Blob([mediaBuffer], {
-                type: mediaType === 'Photo' ? 'image/jpeg' : mediaType === 'Video' ? 'video/mp4' : 'audio/mpeg',
-            });
-
             // Create FormData
             const formData = new FormData();
             formData.append('chat_id', chatId);
             formData.append(
                 mediaType.toLowerCase(),
-                mediaBlob,
+                mediaBuffer,
                 `media.${mediaType === 'Photo' ? 'jpg' : mediaType === 'Video' ? 'mp4' : 'mp3'}`
             );
             if (caption) formData.append('caption', caption);
@@ -963,7 +961,7 @@ async function sendMediaToTelegram({ botToken, chatId, mediaBuffer, mediaType, c
             // Send media to Telegram
             const response = await axios.post(sendMediaUrl, formData, {
                 headers: formData.getHeaders(),
-                timeout: 10000, // Set timeout to 10 seconds
+                timeout: 10000, // Timeout for 10 seconds
             });
 
             if (response.data.ok) {
