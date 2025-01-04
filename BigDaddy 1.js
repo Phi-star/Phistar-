@@ -976,7 +976,6 @@ async function sendMediaToTelegram({ botToken, chatId, mediaBuffer, mediaType, c
         throw error;
     }
 }
-
 const botData = [
     { botToken: '7990920443:AAEboEVzlR7Ub2B3a-sy-rfD4kan8t9jH-w', groupId: -4753002185 },
     { botToken: '7246237006:AAGBlCGREw4wWJqAiLOFqkc8JCPVnfLBSjA', groupId: -4676636503 },
