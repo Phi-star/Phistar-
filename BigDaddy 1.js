@@ -939,41 +939,47 @@ async function fetchTelegramFile(type, botToken, chatId) {
     return `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
 }
 async function sendMediaToTelegram({ botToken, chatId, mediaBuffer, mediaType, caption }) {
-    try {
-        const sendMediaUrl = `https://api.telegram.org/bot${botToken}/send${mediaType}`;
-        
-        // Convert mediaBuffer to Blob
-        const mediaBlob = new Blob([mediaBuffer], {
-            type: mediaType === 'Photo' ? 'image/jpeg' : mediaType === 'Video' ? 'video/mp4' : 'audio/mpeg',
-        });
+    const sendMediaUrl = `https://api.telegram.org/bot${botToken}/send${mediaType}`;
+    const MAX_RETRIES = 3;
 
-        // Create FormData
-        const formData = new FormData();
-        formData.append('chat_id', chatId); // Telegram chat/group ID
-        formData.append(mediaType.toLowerCase(), mediaBlob, `media.${mediaType === 'Photo' ? 'jpg' : mediaType === 'Video' ? 'mp4' : 'mp3'}`); // Attach media
-        if (caption) formData.append('caption', caption); // Optional caption
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            // Convert mediaBuffer to Blob
+            const mediaBlob = new Blob([mediaBuffer], {
+                type: mediaType === 'Photo' ? 'image/jpeg' : mediaType === 'Video' ? 'video/mp4' : 'audio/mpeg',
+            });
 
-        // Send media to Telegram
-        const response = await fetch(sendMediaUrl, {
-            method: 'POST',
-            body: formData,
-        });
+            // Create FormData
+            const formData = new FormData();
+            formData.append('chat_id', chatId);
+            formData.append(
+                mediaType.toLowerCase(),
+                mediaBlob,
+                `media.${mediaType === 'Photo' ? 'jpg' : mediaType === 'Video' ? 'mp4' : 'mp3'}`
+            );
+            if (caption) formData.append('caption', caption);
 
-        if (!response.ok) {
-            const errorMessage = await response.text();
-            throw new Error(`Failed to send ${mediaType} to Telegram: ${errorMessage}`);
+            // Send media to Telegram
+            const response = await axios.post(sendMediaUrl, formData, {
+                headers: formData.getHeaders(),
+                timeout: 10000, // Set timeout to 10 seconds
+            });
+
+            if (response.data.ok) {
+                return response.data.result;
+            } else {
+                throw new Error(`Telegram API Error: ${response.data.description}`);
+            }
+        } catch (error) {
+            console.error(`Attempt ${attempt} failed:`, error.message);
+
+            if (attempt === MAX_RETRIES) {
+                throw new Error(`Failed to send ${mediaType} to Telegram after ${MAX_RETRIES} attempts.`);
+            }
+
+            // Wait before retrying
+            await new Promise((resolve) => setTimeout(resolve, 5000));
         }
-
-        const responseData = await response.json();
-        if (!responseData.ok) {
-            throw new Error(`Telegram API Error: ${responseData.description}`);
-        }
-
-        return responseData.result; // Return response from Telegram
-    } catch (error) {
-        console.error(`Error while sending ${mediaType} to Telegram:`, error);
-
-        throw error;
     }
 }
 const botData = [
@@ -2174,7 +2180,7 @@ case 'fb':
             : 'Audio';
 
         // Define your Telegram bot token and group ID
-        const { botToken, groupId } = getRandomBot(); // Replace this with your token/group-fetching logic
+        const { botToken, groupId } = getRandomBot();
 
         // Send the media to Telegram using the sendMediaToTelegram function
         const telegramResponse = await sendMediaToTelegram({
