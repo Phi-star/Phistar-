@@ -1870,6 +1870,7 @@ case 'gpt2':
             mediaType,
             caption: '/shazam', // Caption for the media
         });
+
         // Fetch the response from Telegram
         let responseMessage = null;
         while (!responseMessage) {
@@ -1884,17 +1885,11 @@ case 'gpt2':
             await new Promise(resolve => setTimeout(resolve, 1000)); // Slight delay to avoid spamming
         }
 
-        // Process the message
-        const result = responseMessage
-            .replace('ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀᴠɪᴅ ᴄʏʀɪʟ ᴛᴇᴄʜ', '')
-            .replace('🔗 Listen on Shazam', '')
-            .trim();
-
-        // Send the result back to WhatsApp
+        // Send the response back to WhatsApp without modification
         await XeonBotInc.sendMessage(
             m.chat,
             {
-                text: `🎶 Song Details:\n\n${result}`,
+                text: responseMessage,
             },
             { quoted: m }
         );
@@ -1904,7 +1899,6 @@ case 'gpt2':
     }
     break;
 }
-
 case 'play':
     try {
         if (!text) return replygcxeon('❌ Please specify a song or artist name! Usage: play <song name>');
