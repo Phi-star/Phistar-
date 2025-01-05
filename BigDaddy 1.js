@@ -5,6 +5,7 @@ const fs = require('fs')
 const fsx = require('fs-extra')
 const path = require('path')
 const util = require('util')
+const sharp = require('sharp');
 const FormData = require('form-data');
 const chalk = require('chalk')
 const moment = require('moment-timezone')
@@ -2424,7 +2425,60 @@ case 'generate':
         await replygcxeon('❌ An error occurred, please try again later.');
         console.error(err);
     }
-    break; 
+    break;
+    case 'scan': {
+    try {
+        // Check if the user replied to a photo
+        if (!m.quoted || !/image/.test(m.quoted.mtype)) {
+            return replygcxeon('❌ Please reply to a photo that you want to scan.');
+        }
+
+        // Fetch the photo as a buffer
+        let media = await XeonBotInc.downloadMediaMessage(m.quoted);
+        if (!media) throw new Error('Failed to fetch the photo.');
+
+        // Upload the image to a hosting service (optional step if the API requires a URL)
+        const uploadApiUrl = 'https://api.imgbb.com/1/upload';
+        const uploadApiKey = 'your_imgbb_api_key'; // Replace with your ImgBB API key
+        const formData = new FormData();
+        formData.append('key', uploadApiKey);
+        formData.append('image', media.toString('base64'));
+
+        const uploadResponse = await axios.post(uploadApiUrl, formData, {
+            headers: formData.getHeaders(),
+        });
+
+        if (!uploadResponse.data || !uploadResponse.data.data || !uploadResponse.data.data.url) {
+            throw new Error('Failed to upload the photo for scanning.');
+        }
+
+        const imageUrl = uploadResponse.data.data.url;
+
+        // Send the image URL to the scan API
+        const scanApiUrl = `https://api.davidcyriltech.my.id/imgscan?url=${encodeURIComponent(imageUrl)}`;
+        const scanResponse = await axios.get(scanApiUrl);
+
+        if (!scanResponse.data || !scanResponse.data.result) {
+            throw new Error('Failed to scan the image.');
+        }
+
+        // Retrieve the scan result
+        const scanResult = scanResponse.data.result;
+
+        // Send the scan result back to WhatsApp
+        await XeonBotInc.sendMessage(
+            m.chat,
+            {
+                text: `📄 *Scan Result:*\n\n${scanResult}`,
+            },
+            { quoted: m }
+        );
+    } catch (error) {
+        replygcxeon('❌ An error occurred while scanning the photo.');
+        console.error(error);
+    }
+    break;
+} 
         case 'remini': {
     try {
         // Check if the user replied to a photo
@@ -2436,10 +2490,14 @@ case 'generate':
 
         // Fetch the photo as a buffer
         let media = await XeonBotInc.downloadMediaMessage(m.quoted);
-        if (!media) throw new Error('Failed to fetch the photo. Please try again.');
+        if (!media) throw new Error('Failed to fetch the photo. Please try again.');      
+        const compressedImage = await sharp(media)
+            .resize({ width: 1024 }) // Resize the image to a max width of 1024px
+            .jpeg({ quality: 80 }) // Compress the image to 80% quality
+            .toBuffer();
 
-        // Convert the buffer to base64 (required for some APIs)
-        const base64Image = media.toString('base64');
+        // Convert the compressed image to base64
+        const base64Image = compressedImage.toString('base64');
 
         // Send the photo to the Remini API
         const apiUrl = `https://api.davidcyriltech.my.id/remini`;
@@ -2477,6 +2535,7 @@ case 'generate':
     }
     break;
 }
+
 case 'mediafire': {
     if (!text) return replygcxeon(`*Example*: ${prefix + command} link...`);
 
