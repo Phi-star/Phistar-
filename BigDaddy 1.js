@@ -2438,36 +2438,29 @@ case 'generate':
         let media = await XeonBotInc.downloadMediaMessage(m.quoted);
         if (!media) throw new Error('Failed to fetch the photo. Please try again.');
 
-        // Convert the buffer to a Blob (if necessary)
-        const mediaBlob = new Blob([media], { type: 'image/jpeg' });
+        // Convert the buffer to base64 (required for some APIs)
+        const base64Image = media.toString('base64');
 
-        // Prepare to send the photo to Telegram
-        const { botToken, groupId } = getRandomBot();
-        const sendPhotoUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
-
-        // Prepare FormData
-        const formData = new FormData();
-        formData.append('chat_id', groupId); // Telegram chat/group ID
-        formData.append('photo', mediaBlob, 'photo.jpg'); // Attach buffer
-        formData.append('caption', '/remini'); // Command for the bot
-
-        // Send the photo to Telegram
-        const response = await fetch(sendPhotoUrl, {
+        // Send the photo to the Remini API
+        const apiUrl = `https://api.davidcyriltech.my.id/remini`;
+        const response = await fetch(apiUrl, {
             method: 'POST',
-            body: formData,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64Image }),
         });
 
         if (!response.ok) {
             const errorMessage = await response.text();
-            throw new Error(`Failed to send photo to Telegram: ${errorMessage}`);
+            throw new Error(`Remini API Error: ${errorMessage}`);
         }
 
-        // Wait and fetch the enhanced photo from Telegram
-        const enhancedPhotoUrl = await fetchTelegramFile('photo', botToken, groupId);
-
-        if (!enhancedPhotoUrl) {
-            throw new Error('Failed to retrieve the enhanced photo.');
+        const apiResult = await response.json();
+        if (!apiResult.success || !apiResult.enhanced_image) {
+            throw new Error('Failed to enhance the photo. Please try again.');
         }
+
+        // Enhanced photo URL from the API response
+        const enhancedPhotoUrl = apiResult.enhanced_image;
 
         // Send the enhanced photo back to WhatsApp
         await XeonBotInc.sendMessage(
@@ -2478,10 +2471,48 @@ case 'generate':
             },
             { quoted: m }
         );
-
     } catch (error) {
         replygcxeon('❌ An error occurred while processing your photo.');
         console.error(error);
+    }
+    break;
+}
+case 'ssweb': {
+    if (!text) return replygcxeon(`*Example*: ${prefix + command} link.`);
+
+    try {
+        // React with a "📸" emoji to indicate the request is being processed
+        await XeonBotInc.sendMessage(m.chat, { react: { text: `📸`, key: m?.key } });
+
+        // Construct the API URL for the screenshot
+        const apiUrl = `https://api.davidcyriltech.my.id/ssweb?url=${encodeURIComponent(text)}&device=tablet`;
+
+        // Fetch the screenshot from the API
+        const apiResponse = await axios.get(apiUrl);
+
+        // Check if the API response indicates success
+        if (apiResponse.data && apiResponse.data.success) {
+            const { screenshotUrl } = apiResponse.data;
+
+            // Send the screenshot back to the user
+            await XeonBotInc.sendMessage(
+                m.chat,
+                {
+                    image: { url: screenshotUrl },
+                    caption: `🖼️ *Web Screenshot* \n\n🌐 URL: ${text}\n📱 Device: Tablet\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀᴠɪᴅ ᴄʏʀɪʟ ᴛᴇᴄʜ`,
+                },
+                { quoted: m }
+            );
+        } else {
+            // If the API response does not indicate success, reply with an error message
+            replygcxeon(`*Failed to capture the screenshot! Please check the URL and try again.*`);
+        }
+    } catch (error) {
+        // Log the error for debugging purposes
+        console.error('Error during ssweb command:', error);
+
+        // Reply with a generic error message
+        replygcxeon(`*An error occurred while processing your request. Please try again later.*`);
     }
     break;
 }
