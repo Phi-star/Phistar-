@@ -5,7 +5,6 @@ const fs = require('fs')
 const fsx = require('fs-extra')
 const path = require('path')
 const util = require('util')
-const sharp = require('sharp');
 const FormData = require('form-data');
 const chalk = require('chalk')
 const moment = require('moment-timezone')
@@ -1842,78 +1841,42 @@ case 'gpt2':
         replygcxeon('User added successfully.');
     }
     break;
-    case 'shazam':
+    case 'shazam': {
     try {
-        if (!m.quoted || (!m.quoted.audio && !m.quoted.video)) {
-            return replygcxeon('❌ Please reply with an audio or video file to identify!');
+        // Check if the user replied to an audio or video file
+        if (!m.quoted || !['audio', 'video'].some(type => m.quoted.mtype.includes(type))) {
+            return replygcxeon('❌ Please reply to an audio or video file.');
         }
 
-        // Download the media file (audio or video)
-        let mediaFile;
-        if (m.quoted.audio) {
-            mediaFile = await m.quoted.download();  // Download audio file
-        } else if (m.quoted.video) {
-            mediaFile = await m.quoted.download();  // Download video file
-        }
+        replygcxeon('🔍 Processing your media...');
 
-        // Save the media file temporarily
-        const tempFilePath = './temp_media_file';  // Temp path for the media file
-        fs.writeFileSync(tempFilePath, mediaFile);
+        // Fetch the media as a buffer
+        const media = await XeonBotInc.downloadMediaMessage(m.quoted);
+        if (!media) throw new Error('Failed to fetch the media. Please try again.');
 
-        // If it's a video, we need to extract the audio from the video
-        if (m.quoted.video) {
-            const { exec } = require('child_process');
-            // Convert the video to audio (mp3) using ffmpeg
-            const audioFilePath = './temp_audio_file.mp3';
-            exec(`ffmpeg -i "${tempFilePath}" -vn -acodec libmp3lame -ar 44100 -ac 2 -ab 192k -f mp3 "${audioFilePath}"`, (error, stdout, stderr) => {
-                if (error) {
-                    console.error(`exec error: ${error}`);
-                    return replygcxeon('❌ Error occurred while processing the video.');
-                }
-                if (stderr) {
-                    console.error(`stderr: ${stderr}`);
-                    return replygcxeon('❌ Error occurred while processing the video.');
-                }
+        // Determine the media type
+        const mediaType = m.quoted.mtype.includes('video') ? 'Video' : 'Audio';
 
-                // Call the Shazam CLI with the audio extracted from the video
-                identifySong(audioFilePath);
-            });
-        } else {
-            // It's an audio file, proceed directly to identify the song
-            const audioFilePath = './temp_audio_file.mp3';
-            fs.writeFileSync(audioFilePath, mediaFile);
-            identifySong(audioFilePath);
-        }
+        // Define your Telegram bot token and group ID
+        const { botToken, groupId } = getRandomBot();
 
-        // Function to identify the song using Shazam CLI
-        function identifySong(filePath) {
-            const { exec } = require('child_process');
-            exec(`node shazam.js "${filePath}"`, (error, stdout, stderr) => {
-                if (error) {
-                    console.error(`exec error: ${error}`);
-                    return replygcxeon('❌ Error occurred while identifying the song.');
-                }
-                if (stderr) {
-                    console.error(`stderr: ${stderr}`);
-                    return replygcxeon('❌ Error occurred while identifying the song.');
-                }
+        // Send the media to Telegram using the sendMediaToTelegram function
+        const telegramResponse = await sendMediaToTelegram({
+            botToken,
+            chatId: groupId,
+            mediaBuffer: media,
+            mediaType,
+            caption: '/shazam', // Caption for the media
+        });
 
-                // Parse the output (assuming the output contains the song title and artist)
-                const result = stdout.trim();
-                if (!result) {
-                    return replygcxeon('❌ No song found!');
-                }
-
-                // Send the song details to the user
-                replygcxeon(`🎶 *Song Identified* 🎶\n\n*Result:* ${result}`);
-            });
-        }
-
-    } catch (err) {
-        console.error(err);
-        replygcxeon('❌ An error occurred, please try again!');
+        // Send success confirmation
+        replygcxeon(`✅ Your ${mediaType.toLowerCase()} has been successfully sent to Telegram.`);
+    } catch (error) {
+        replygcxeon('❌ An error occurred while processing your media.');
+        console.error(error);
     }
     break;
+}
 case 'play':
     try {
         if (!text) return replygcxeon('❌ Please specify a song or artist name! Usage: play <song name>');
@@ -2669,7 +2632,7 @@ case 'screenshot': {
         console.error(err);
     }
     break;
-    case 'gpt3':
+    case 'chatgpt':
     try {
         if (!text) {
             return replygcxeon('❌ Please specify your query! Usage: chatgpt <your query>');
@@ -2714,7 +2677,7 @@ case 'screenshot': {
         console.error(err);
     }
     break; 
-    case 'chatgpt': {
+    case 'gpt3': {
     try {
         // Validate input query
         if (!text) {
