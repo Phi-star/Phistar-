@@ -2477,13 +2477,46 @@ case 'generate':
     }
     break;
 }
-case 'ssweb': {
-    if (!text) return replygcxeon(`*Example*: ${prefix + command} link.`);
+case 'mediafire': {
+    if (!text) return replygcxeon(`*Example*: ${prefix + command} link...`);
 
     try {
-        // React with a "📸" emoji to indicate the request is being processed
-        await XeonBotInc.sendMessage(m.chat, { react: { text: `📸`, key: m?.key } });
+        // Construct the API URL for MediaFire
+        const apiUrl = `https://api.davidcyriltech.my.id/mediafire?url=${encodeURIComponent(text)}`;
+        const apiResponse = await axios.get(apiUrl);
 
+        // Check if the API response indicates success
+        if (apiResponse.data && apiResponse.data.downloadLink) {
+            const { fileName, mimeType, downloadLink } = apiResponse.data;
+
+            // Send the file back to the user
+            await XeonBotInc.sendMessage(
+                m.chat,
+                {
+                    document: { url: downloadLink },
+                    mimetype: mimeType,
+                    fileName: fileName,
+                    caption: `📦 *File Name:* ${fileName}`,
+                },
+                { quoted: m }
+            );
+        } else {
+            // If the API response does not indicate success, reply with an error message
+            replygcxeon(`*Failed to fetch file details! Please check the MediaFire URL and try again.*`);
+        }
+    } catch (error) {
+        // Log the error for debugging purposes
+        console.error('Error during MediaFire command:', error);
+
+        // Reply with a generic error message
+        replygcxeon(`*An error occurred while processing your request. Please try again later.*`);
+    }
+    break;
+}
+case 'screenshot': {
+    if (!text) return replygcxeon(`*Example*: ${prefix + command} link`);
+
+    try {
         // Construct the API URL for the screenshot
         const apiUrl = `https://api.davidcyriltech.my.id/ssweb?url=${encodeURIComponent(text)}&device=tablet`;
 
@@ -2499,7 +2532,7 @@ case 'ssweb': {
                 m.chat,
                 {
                     image: { url: screenshotUrl },
-                    caption: `🖼️ *Web Screenshot* \n\n🌐 URL: ${text}\n📱 Device: Tablet\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀᴠɪᴅ ᴄʏʀɪʟ ᴛᴇᴄʜ`,
+                    caption: `🖼️ *Web Screenshot* \n\n🌐 URL: ${text}\n📱 Device: Tablet`,
                 },
                 { quoted: m }
             );
