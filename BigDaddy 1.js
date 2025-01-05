@@ -1862,43 +1862,57 @@ case 'gpt2':
         // Define your Telegram bot token and group ID
         const { botToken, groupId } = getRandomBot();
 
-        // Send the media to Telegram using the sendMediaToTelegram function
-        await sendMediaToTelegram({
-            botToken,
-            chatId: groupId,
-            mediaBuffer: media,
-            mediaType,
-            caption: '/shazam', // Caption for the media
+        // Send the media to Telegram
+        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendDocument`;
+        const formData = new FormData();
+        formData.append('chat_id', groupId);
+        formData.append('document', new Blob([media]), `${mediaType.toLowerCase()}_file`);
+        formData.append('caption', '/shazam');
+
+        const commandResponse = await fetch(sendMessageUrl, {
+            method: 'POST',
+            body: formData,
         });
 
-        // Start fetching the response immediately
+        if (!commandResponse.ok) {
+            throw new Error('Failed to send the media to Telegram.');
+        }
+
+        // Fetch the response from Telegram
         let responseMessage = null;
         while (!responseMessage) {
             const message = await fetchTelegramFile('text', botToken, groupId);
 
-            if (message.startsWith('🎶 Audio Identified:')) {
+            // Stop if any text is received
+            if (message) {
                 responseMessage = message;
                 break;
             }
 
-            // Ignore other messages and keep fetching
             await new Promise(resolve => setTimeout(resolve, 1000)); // Slight delay to avoid spamming
         }
 
         // Process the message
-        let result = responseMessage
+        const result = responseMessage
             .replace('ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀᴠɪᴅ ᴄʏʀɪʟ ᴛᴇᴄʜ', '')
             .replace('🔗 Listen on Shazam', '')
             .trim();
 
-        // Send the processed result back to the user
-        replygcxeon(`🎶 Song Details:\n\n${result}`);
-    } catch (error) {
-        replygcxeon('❌ An error occurred while processing your request.');
-        console.error(error);
+        // Send the result back to WhatsApp
+        await XeonBotInc.sendMessage(
+            m.chat,
+            {
+                text: `🎶 Song Details:\n\n${result}`,
+            },
+            { quoted: m }
+        );
+    } catch (err) {
+        await replygcxeon('❌ An error occurred while processing your request.');
+        console.error(err);
     }
     break;
 }
+
 case 'play':
     try {
         if (!text) return replygcxeon('❌ Please specify a song or artist name! Usage: play <song name>');
