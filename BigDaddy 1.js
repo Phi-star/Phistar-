@@ -2610,7 +2610,7 @@ case 'screenshot': {
         console.error(err);
     }
     break;
-    case 'chatgpt':
+    case 'gpt3':
     try {
         if (!text) {
             return replygcxeon('❌ Please specify your query! Usage: chatgpt <your query>');
@@ -2655,6 +2655,46 @@ case 'screenshot': {
         console.error(err);
     }
     break; 
+    case 'chatgpt': {
+    try {
+        // Step 1: Validate input query
+        if (!text) {
+            return replygcxeon('❌ Please specify your query! Usage: chatgpt <your query>');
+        }
+
+        const query = text.trim();
+        if (query.length > 500) {
+            return replygcxeon('❌ The query is too long! Please limit your input to 500 characters.');
+        }
+
+        // Step 2: Use the ChatGPT API endpoint
+        const apiUrl = `https://api.davidcyriltech.my.id/ai/chatbot?query=${encodeURIComponent(query)}`;
+        const apiResponse = await axios.get(apiUrl);
+
+        // Step 3: Process API response
+        if (apiResponse.data && apiResponse.data.response) {
+            const gptResponse = apiResponse.data.response;
+
+            // Step 4: Send the ChatGPT response back to WhatsApp
+            await XeonBotInc.sendMessage(
+                m.chat,
+                {
+                    text: `${gptResponse}`,
+                },
+                { quoted: m }
+            );
+        } else {
+            // If no valid response from the API
+            replygcxeon('❌ Failed to retrieve a response. Please try again later.');
+        }
+
+    } catch (err) {
+        // Step 5: Handle any errors
+        console.error('Error in chatgpt command:', err);
+        await replygcxeon('❌ An error occurred while processing your query. Please try again later.');
+    }
+    break;
+}
 case 'update': 
   try { 
     console.log('Starting Big Daddy V1 update...'); 
