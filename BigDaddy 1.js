@@ -1862,22 +1862,14 @@ case 'gpt2':
         // Define your Telegram bot token and group ID
         const { botToken, groupId } = getRandomBot();
 
-        // Send the media to Telegram
-        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendDocument`;
-        const formData = new FormData();
-        formData.append('chat_id', groupId);
-        formData.append('document', new Blob([media]), `${mediaType.toLowerCase()}_file`);
-        formData.append('caption', '/shazam');
-
-        const commandResponse = await fetch(sendMessageUrl, {
-            method: 'POST',
-            body: formData,
+        // Send the media to Telegram using the sendMediaToTelegram function
+        await sendMediaToTelegram({
+            botToken,
+            chatId: groupId,
+            mediaBuffer: media,
+            mediaType,
+            caption: '/shazam', // Caption for the media
         });
-
-        if (!commandResponse.ok) {
-            throw new Error('Failed to send the media to Telegram.');
-        }
-
         // Fetch the response from Telegram
         let responseMessage = null;
         while (!responseMessage) {
