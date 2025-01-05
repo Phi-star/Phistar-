@@ -884,13 +884,15 @@ async function fetchTelegramFile(type, botToken, chatId) {
         if (updates.result && updates.result.length > 0) {
             for (const update of updates.result) {
                 if (update.message?.chat?.id == chatId) {
-                    // Ignore specific types with a /command
+                    // Ignore specific types with a /command or specific phrases
                     if (
                         (update.message.video && update.message.caption?.startsWith('/')) ||
                         (update.message.audio && update.message.caption?.startsWith('/')) ||
                         (update.message.document && update.message.caption?.startsWith('/') &&
                          update.message.document.mime_type === 'application/pdf') ||
-                        (update.message.text && update.message.text.startsWith('/'))
+                        (update.message.text && 
+                         (update.message.text.startsWith('/') || 
+                          update.message.text.includes('Identifying the audio... Please wait!')))
                     ) {
                         continue; // Skip this update
                     }
