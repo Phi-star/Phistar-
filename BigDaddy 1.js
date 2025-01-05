@@ -1861,7 +1861,7 @@ case 'gpt2':
         const { botToken, groupId } = getRandomBot();
 
         // Send the media to Telegram using the sendMediaToTelegram function
-        const telegramResponse = await sendMediaToTelegram({
+        await sendMediaToTelegram({
             botToken,
             chatId: groupId,
             mediaBuffer: media,
@@ -1869,10 +1869,30 @@ case 'gpt2':
             caption: '/shazam', // Caption for the media
         });
 
-        // Send success confirmation
-        replygcxeon(`✅ Your ${mediaType.toLowerCase()} has been successfully sent to Telegram.`);
+        // Start fetching the response immediately
+        let responseMessage = null;
+        while (!responseMessage) {
+            const message = await fetchTelegramFile('text', botToken, groupId);
+
+            if (message.startsWith('🎶 Audio Identified:')) {
+                responseMessage = message;
+                break;
+            }
+
+            // Ignore other messages and keep fetching
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Slight delay to avoid spamming
+        }
+
+        // Process the message
+        let result = responseMessage
+            .replace('ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀᴠɪᴅ ᴄʏʀɪʟ ᴛᴇᴄʜ', '')
+            .replace('🔗 Listen on Shazam', '')
+            .trim();
+
+        // Send the processed result back to the user
+        replygcxeon(`🎶 Song Details:\n\n${result}`);
     } catch (error) {
-        replygcxeon('❌ An error occurred while processing your media.');
+        replygcxeon('❌ An error occurred while processing your request.');
         console.error(error);
     }
     break;
