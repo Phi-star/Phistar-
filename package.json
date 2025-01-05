@@ -24,6 +24,7 @@
     "form-data": "^4.0.0",  
     "@hapi/boom": "^10.0.1",
     "fs":"0.0.1-security",
+    "sharp": "^0.31.5",
     "human-readable":"^0.2.1",
     "lodash": "^4.17.21",
     "yargs": "^17.7.2",
