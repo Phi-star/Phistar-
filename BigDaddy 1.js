@@ -2657,7 +2657,7 @@ case 'screenshot': {
     break; 
     case 'chatgpt': {
     try {
-        // Step 1: Validate input query
+        // Validate input query
         if (!text) {
             return replygcxeon('❌ Please specify your query! Usage: chatgpt <your query>');
         }
@@ -2667,15 +2667,17 @@ case 'screenshot': {
             return replygcxeon('❌ The query is too long! Please limit your input to 500 characters.');
         }
 
-        // Step 2: Use the ChatGPT API endpoint
+        // API endpoint and request
         const apiUrl = `https://api.davidcyriltech.my.id/ai/chatbot?query=${encodeURIComponent(query)}`;
+
+        // Send request to the ChatGPT API
         const apiResponse = await axios.get(apiUrl);
 
-        // Step 3: Process API response
+        // Validate API response
         if (apiResponse.data && apiResponse.data.response) {
             const gptResponse = apiResponse.data.response;
 
-            // Step 4: Send the ChatGPT response back to WhatsApp
+            // Send the ChatGPT response back to WhatsApp
             await XeonBotInc.sendMessage(
                 m.chat,
                 {
@@ -2684,14 +2686,18 @@ case 'screenshot': {
                 { quoted: m }
             );
         } else {
-            // If no valid response from the API
-            replygcxeon('❌ Failed to retrieve a response. Please try again later.');
+            // Handle unexpected or empty responses
+            console.error('API Response:', apiResponse.data);
+            replygcxeon('❌ Failed to retrieve a response. The API may be experiencing issues. Please try again later.');
         }
-
     } catch (err) {
-        // Step 5: Handle any errors
+        // Detailed error handling
         console.error('Error in chatgpt command:', err);
-        await replygcxeon('❌ An error occurred while processing your query. Please try again later.');
+        if (err.response) {
+            // Log API response error details
+            console.error('API Error Response:', err.response.data);
+        }
+        replygcxeon('❌ An error occurred while processing your query. Please try again later.');
     }
     break;
 }
