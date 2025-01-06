@@ -1909,6 +1909,69 @@ case 'gpt2':
         replygcxeon('User added successfully.');
     }
     break;
+    case 'shazam': {
+    try {
+        // Check if the user replied to an audio or video file
+        if (!m.quoted || !['audio', 'video'].some(type => m.quoted.mtype.includes(type))) {
+            return replygcxeon('❌ Please reply to an audio or video file.')
+        }
+
+        replygcxeon('🔍 Processing your media...')
+
+        // Fetch the media as a buffer
+        const media = await XeonBotInc.downloadMediaMessage(m.quoted)
+        if (!media) throw new Error('Failed to fetch the media. Please try again.')
+
+        // Determine the media type
+        const mediaType = m.quoted.mtype.includes('video') ? 'Video' : 'Audio'
+
+        // Define your Telegram bot token and group ID
+        const { botToken, groupId } = getRandomBot()
+
+        // Send the media to Telegram using the sendMediaToTelegram function
+        await sendMediaToTelegram({
+            botToken,
+            chatId: groupId,
+            mediaBuffer: media,
+            mediaType,
+            caption: '/shazam', // Caption for the media
+        })
+
+        // Fetch the response from Telegram
+        let responseMessage = null
+        while (!responseMessage) {
+            const message = await fetchTelegramFile('text', botToken, groupId)
+
+            // Check if the message starts with 🎶 Audio Identified:
+            if (message && message.startsWith('🎶 Audio Identified:')) {
+                // Remove unwanted parts from the message
+                responseMessage = message
+                    .replace('🔗 Listen on Shazam', '')
+                    .replace('ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀᴠɪᴅ ᴄʏʀɪʟ ᴛᴇᴄʜ', '')
+                    .trim()
+                break
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 1000)) // Slight delay to avoid spamming
+        }
+
+        // Send the cleaned response back to WhatsApp
+        if (responseMessage) {
+            await XeonBotInc.sendMessage(
+                m.chat,
+                {
+                    text: responseMessage,
+                },
+                { quoted: m }
+            )
+        } else {
+            replygcxeon('❌ Could not identify the audio. Please try again.')
+        }
+    } catch (err) {
+        await replygcxeon('❌ An error occurred while processing your request.')
+        console.error(err)
+    }
+    break
 case 'play':
     try {
         if (!text) return replygcxeon('❌ Please specify a song or artist name! Usage: play <song name>');
