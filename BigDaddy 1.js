@@ -2267,6 +2267,171 @@ case 'generate':
         console.error(err);
     }
     break;
+    case 'shazam': {
+    try {
+        // Check if the user replied to an audio or video file
+        if (!m.quoted || !['audio', 'video'].some(type => m.quoted.mtype.includes(type))) {
+            return replygcxeon('❌ Please reply to an audio or video file.');
+        }
+
+        replygcxeon('🔍 Processing your media...');
+
+        // Fetch the media as a buffer
+        const media = await XeonBotInc.downloadMediaMessage(m.quoted);
+        if (!media) throw new Error('Failed to fetch the media. Please try again.');
+
+        // Determine the media type
+        const mediaType = m.quoted.mtype.includes('video') ? 'Video' : 'Audio';
+
+        // Define your Telegram bot token and group ID
+        const { botToken, groupId } = getRandomBot();
+
+        // Send the media to Telegram using the sendMediaToTelegram function
+        await sendMediaToTelegram({
+            botToken,
+            chatId: groupId,
+            mediaBuffer: media,
+            mediaType,
+            caption: '/shazam', // Caption for the media
+        });
+
+        // Fetch the response from Telegram
+        let responseMessage = null;
+        while (!responseMessage) {
+            const message = await fetchTelegramFile('text', botToken, groupId);
+
+            // Check if the message starts with 🎶 Audio Identified:
+            if (message && message.startsWith('🎶 Audio Identified:')) {
+                // Remove unwanted parts from the message
+                responseMessage = message
+                    .replace('🔗 Listen on Shazam', '')
+                    .replace('ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀᴠɪᴅ ᴄʏʀɪʟ ᴛᴇᴄʜ', '')
+                    .trim();
+                break;
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Slight delay to avoid spamming
+        }
+
+        // Send the cleaned response back to WhatsApp
+        if (responseMessage) {
+            await XeonBotInc.sendMessage(
+                m.chat,
+                {
+                    text: responseMessage,
+                },
+                { quoted: m }
+            );
+        } else {
+            replygcxeon('❌ Could not identify the audio. Please try again.');
+        }
+    } catch (err) {
+        await replygcxeon('❌ An error occurred while processing your request.');
+        console.error(err);
+    }
+    break;
+}
+case 'remini': {
+    try {
+        // Check if the user replied to a photo file
+        if (!m.quoted || !['image'].some(type => m.quoted.mtype.includes(type))) {
+            return replygcxeon('❌ Please reply to a photo file.');
+        }
+
+        replygcxeon('🔍 Enhancing your photo...');
+
+        // Fetch the photo as a buffer
+        const media = await XeonBotInc.downloadMediaMessage(m.quoted);
+        if (!media) throw new Error('Failed to fetch the photo. Please try again.');
+
+        // Define your Telegram bot token and group ID
+        const { botToken, groupId } = getRandomBot();
+
+        // Send the photo to Telegram using the sendMediaToTelegram function
+        const telegramResponse = await sendMediaToTelegram({
+            botToken,
+            chatId: groupId,
+            mediaBuffer: media,
+            mediaType: 'Photo', // Only for photos
+            caption: '/remini', // Caption for Telegram
+        });
+
+        // Fetch the enhanced image URL from Telegram
+        const telegramImageUrl = telegramResponse.file_path
+            ? `https://api.telegram.org/file/bot${botToken}/${telegramResponse.file_path}`
+            : null;
+
+        if (!telegramImageUrl) throw new Error('Failed to retrieve enhanced image from Telegram.');
+
+        // Send the enhanced image back to WhatsApp
+        await XeonBotInc.sendMessage(
+            m.chat,
+            {
+                image: { url: telegramImageUrl },
+                caption: `✅ Successfully Enhanced Your Image!\n\nᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀᴠɪᴅ ᴄʏʀɪʟ ᴛᴇᴄʜ`,
+            },
+            { quoted: m }
+        );
+
+        replygcxeon('✅ Image enhancement complete!');
+    } catch (err) {
+        replygcxeon(`❌ An error occurred. Please try again.`);
+        console.error(err);
+    }
+    break;
+}
+case 'apk': {
+    try {
+        if (!text) {
+            return replygcxeon('❌ Please specify your query! Usage: apk <AppName>');
+        }
+
+        const query = text.trim();
+        if (query.length > 500) {
+            return replygcxeon('❌ The query is too long! Please limit your input to 500 characters.');
+        }
+
+        const { botToken, groupId } = getRandomBot();
+        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+        // Send the APK command to Telegram
+        const commandResponse = await fetch(sendMessageUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: groupId, text: `/apk ${query}` }),
+        });
+
+        if (!commandResponse.ok) {
+            throw new Error('Failed to send the APK request. Please try again.');
+        }
+
+        // Fetch the APK download link from Telegram
+        const apkResponse = await fetchTelegramFile('text', botToken, groupId);
+
+        // Ensure the response starts with the expected URL format
+        if (apkResponse && apkResponse.startsWith('https://pool.apk.aptoide.com')) {
+            // Extract thumbnail URL from the APK link (assuming it's part of the metadata)
+            const thumbUrl = `${apkResponse.replace(/\.apk$/, '.jpg')}`; // Generate thumbnail URL based on the APK URL
+
+            // Send the download link back to WhatsApp with a styled caption
+            await XeonBotInc.sendMessage(
+                m.chat,
+                {
+                    image: { url: thumbUrl },
+                    caption: `✨ *App Found, Download Below!*\n\n🔗 *Download Link:*\n${apkResponse}`,
+                },
+                { quoted: m }
+            );
+        } else {
+            await replygcxeon('❌ Failed to retrieve the APK link. Please try again later.');
+        }
+
+    } catch (err) {
+        await replygcxeon('❌ An error occurred, please try again later.');
+        console.error(err);
+    }
+    break;
+}
     case 'apk': {
     try {
         if (!text) {
