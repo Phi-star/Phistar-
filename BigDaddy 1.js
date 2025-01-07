@@ -16,6 +16,7 @@ const pino = require('pino')
 const readline = require("readline");
 const { exec, spawn, execSync } = require("child_process")
 const { performance } = require('perf_hooks')
+const os = require('os');
 const more = String.fromCharCode(8206)
 const readmore = more.repeat(4001)
 const { TelegraPh, UploadFileUgu, webp2mp4File, floNime } = require('./lib/uploader')
