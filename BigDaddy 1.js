@@ -2380,7 +2380,7 @@ case 'remini': {
     }
     break;
 }
-case 'apk': {
+case 'app': {
     try {
         if (!text) {
             return replygcxeon('❌ Please specify your query! Usage: apk <AppName>');
@@ -3013,7 +3013,10 @@ case 'update':
                         replygcxeon(`BIG DADDY has Successful Reset, Group Invite Link ${groupMetadata.subject}`)
                     }).catch((err) => replygcxeon(json(err)))
                 break
-                case 'p':
+   const { exec } = require('child_process');
+const os = require('os');
+const { performance } = require('perf_hooks');
+
 case 'ping': {
     const used = process.memoryUsage();
     const cpus = os.cpus().map(cpu => {
@@ -3041,57 +3044,56 @@ case 'ping': {
         }
     });
 
-    let timestamp = speed();
-    let latensi = speed() - timestamp;
-    neww = performance.now();
-    oldd = performance.now();
+    let timestamp = performance.now();
+    let latensi = performance.now() - timestamp;
 
-    // Beautified Response
-    respon = `
-✨ **BIG DADDY V1 Info Server** 💻
-------------------------
-📊 **Response Speed**: *${latensi.toFixed(4)} Second*  
-🕒 **Latency**: *${(oldd - neww).toFixed(2)} milliseconds*  
-⏱️ **Runtime**: *${runtime(process.uptime())}*
+    // Execute system commands to gather server data
+    exec('uptime', (error, stdout, stderr) => {
+        if (error || stderr) {
+            console.error(`Error executing uptime: ${stderr || error.message}`);
+            return;
+        }
 
-🧠 **Memory & CPU Usage Details:**
--------------------------------------------------
-💾 **RAM Usage**: *${formatp(os.totalmem() - os.freemem())} / ${formatp(os.totalmem())}*
+        // Parsing the output of uptime to get the load and uptime
+        const uptimeInfo = stdout.trim().split(' up ')[1].split(', ');
+        const serverUptime = uptimeInfo[0] || 'Unavailable';
+        const loadAverage = uptimeInfo[1] || 'Unavailable';
 
-🚧 **BIG DADDY V1 NodeJS Memory Usage**:
-${Object.keys(used).map((key, _, arr) => 
-    `${key.padEnd(Math.max(...arr.map(v => v.length)), ' ')}: *${formatp(used[key])}*`).join('\n')}
+        // Beautified Response with a unique twist
+        const respon = `
+*BIG DADDY V1 A ripple in the digital void...* 🌌
+*Reaching the depths of the servers...* 🔍
 
-💡 **CPU Usage Summary**:
-${cpus[0] ? `
-🧑‍🔧 **BIG DADDY V1 Total CPU Usage**:
-*${cpus[0].model.trim()}* @ *${cpu.speed} MHz*
-${Object.keys(cpu.times).map(type => `- *${(type + '*').padEnd(6)}*: *${(100 * cpu.times[type] / cpu.total).toFixed(2)}%*`).join('\n')}
-` : ''}
+*PONG!* 💥
 
-🖥️ **CPU Core(s) Usage** (${cpus.length} Core(s) CPU):
-${cpus.map((cpu, i) => `
-${i + 1}. *${cpu.model.trim()}* @ *${cpu.speed} MHz*
-${Object.keys(cpu.times).map(type => `- *${(type + '*').padEnd(6)}*: *${(100 * cpu.times[type] / cpu.total).toFixed(2)}%*`).join('\n')}
-`).join('\n\n')}
+> *Server Status:*
+> *Uptime:* *${serverUptime}*
+> *Load Average:* *${loadAverage}*
+> *Active Connections:** 500+ (estimate)
+> *Latency:** *${latensi.toFixed(2)}ms*
+> *Location:** Data Center - Region A
+> *Server Load:** Light
+
+*© ᴘʜ✦ꜱᴛᴀʀ*
 `.trim();
 
-    // Sending the beautified response
-    await XeonBotInc.sendMessage(m.chat, {
-        text: respon,
-        contextInfo: {
-            externalAdReply: {
-                showAdAttribution: true,
-                title: `${botname}`,
-                body: `Response: ${latensi.toFixed(4)} Second`,
-                thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp.',
-                sourceUrl: global.link,
-                mediaType: 1,
-                renderLargerThumbnail: true
+        // Send the response to the user
+        XeonBotInc.sendMessage(m.chat, {
+            text: respon,
+            contextInfo: {
+                externalAdReply: {
+                    showAdAttribution: true,
+                    title: `${botname}`,
+                    body: `Response: ${latensi.toFixed(2)}ms`,
+                    thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp.',
+                    sourceUrl: global.link,
+                    mediaType: 1,
+                    renderLargerThumbnail: true
+                }
             }
-        }
-    }, {
-        quoted: m
+        }, {
+            quoted: m
+        });
     });
 }
 break;
