@@ -2356,7 +2356,7 @@ case 'remini': {
             return replygcxeon('❌ Please reply to a photo file.');
         }
 
-        replygcxeon('🔍 Enhancing your photo...');
+        replygcxeon('🔍 Enhancing your photo... Please wait!');
 
         // Fetch the photo as a buffer
         const media = await XeonBotInc.downloadMediaMessage(m.quoted);
@@ -2382,12 +2382,10 @@ case 'remini': {
                 m.chat,
                 {
                     image: { url: telegramImageUrl },
-                    caption: `✅ Successfully Enhanced Your Image!`,
+                    caption: `✨ *Your Image Has Been Successfully Enhanced!* ✨\n\nPowered by *Phistar* 🌟\n\nEnjoy the magic! 😍`,
                 },
                 { quoted: m }
             );
-
-            replygcxeon('✅ Image enhancement complete!');
         } else {
             replygcxeon('❌ Failed to enhance the image. Please try again later.');
         }
@@ -2397,7 +2395,7 @@ case 'remini': {
     }
     break;
 }
-case 'apk': {
+    case 'app': {
     try {
         if (!text) {
             return replygcxeon('❌ Please specify your query! Usage: apk <AppName>');
@@ -2408,11 +2406,10 @@ case 'apk': {
             return replygcxeon('❌ The query is too long! Please limit your input to 500 characters.');
         }
 
-        replygcxeon('🔍 Searching for the APK file...');
         const { botToken, groupId } = getRandomBot();
         const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
-        // Step 1: Send the APK query to Telegram
+        // Send the APK command to Telegram
         const commandResponse = await fetch(sendMessageUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2423,43 +2420,27 @@ case 'apk': {
             throw new Error('Failed to send the APK request. Please try again.');
         }
 
-        // Step 2: Use fetchTelegramFile to get the APK URL
-        const apkUrl = await fetchTelegramFile('url', botToken, groupId);
+        // Fetch the APK download link from Telegram using the URL function
+        const apkResponse = await fetchTelegramFile('url', botToken, groupId);
 
-        // Ensure APK URL is valid
-        if (!apkUrl) {
-            return replygcxeon('❌ Failed to retrieve the APK file URL. Please try again later.');
+        if (apkResponse) {
+            await XeonBotInc.sendMessage(
+                m.chat,
+                {
+                    image: { url: apkResponse.replace(/\.apk$/, '.jpg') }, // Use the APK link and generate the thumbnail URL
+                    caption: `✨ *App Found, Download Below!*\n\n🔗 *Download Link:*\n${apkResponse}`,
+                },
+                { quoted: m }
+            );
+        } else {
+            await replygcxeon('❌ Failed to retrieve the APK link. Please try again later.');
         }
-
-        // Step 3: Download the APK file
-        replygcxeon('🔍 Downloading the APK file...');
-        const fileResponse = await fetch(apkUrl);
-
-        if (!fileResponse.ok) {
-            throw new Error('Failed to download the APK file.');
-        }
-
-        // Step 4: Convert the response to a buffer
-        const fileBuffer = await fileResponse.arrayBuffer();
-
-        // Step 5: Send the APK file back to WhatsApp
-        await XeonBotInc.sendMessage(
-            m.chat,
-            {
-                document: { buffer: Buffer.from(fileBuffer), mimetype: 'application/vnd.android.package-archive', fileName: `${query}.apk` },
-                caption: `✨ *App Found!*\n\n📦 *Download the file directly below:*`,
-            },
-            { quoted: m }
-        );
-
     } catch (err) {
-        replygcxeon('❌ An error occurred, please try again later.');
+        await replygcxeon('❌ An error occurred, please try again later.');
         console.error(err);
     }
     break;
 }
-
-    
     case 'text2pdf':
     try {
         if (!text) {
@@ -3038,8 +3019,7 @@ case 'p': {
     });
 }
 break;
-case 'ping':
-case 'p': {
+case 'ping': {
     const { exec } = require('child_process');
 
     let timestamp = performance.now();
@@ -3059,9 +3039,17 @@ case 'p': {
 
         // Beautified Response with a unique twist
         const respon = `
-*Pong!* 💥
+*PONG!* 💥
 
-> *Response time:* *${latensi.toFixed(2)}ms*
+. *Server Status:*
+. *Uptime:* *${serverUptime}*
+. *Load Average:* *${loadAverage}*
+. *Active Connections:** 500+ (estimate)
+. *Latency:** *${latensi.toFixed(2)}ms*
+. *Location:** Data Center - Region A
+. *Server Load:** Light
+
+*© ᴘʜ✦ꜱᴛᴀʀ*
 `.trim();
 
         // Send the response to the user
@@ -3084,6 +3072,7 @@ case 'p': {
     });
 }
 break;
+
             case 'buypremium':
             case 'buyprem':
             case 'premium': {
@@ -5238,14 +5227,12 @@ break
             case '?':
             case 'Menu':
                let xeonmenuoh = `
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┃ ✨ *Creator: ᴘʜ✦ꜱᴛᴀʀ* 💫
-┃ ✨ *Version: 1.0.0* 🧪
-┃ ✨ *Model: Big Daddy V1* 👑
-┃ ✨ *Uptime:* *${runtime(process.uptime())} ⏰🔋*
-╰━━━━━━━━━━━⚡◁️💥━━━━━━━━━━━
-
-${xeonytimewisher}
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+┃  ✨ *Creator: ᴘʜ✦ꜱᴛᴀʀ* 💫
+┃  🧪 *Version: *1.0.0* 
+┃  🤖 *Model: *Big Daddy V1* 
+┃  ⏰ *Uptime:* ${runtime(process.uptime())} *
+▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓
 ${readmore}
 ╭⭑━━━➤ ʜᴀᴄᴋ ᴍᴇɴᴜ  
 ┣ ◁️⚡💥 𝐡𝐠𝐜  
