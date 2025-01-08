@@ -2395,7 +2395,7 @@ case 'remini': {
     }
     break;
 }
-    case 'app': {
+    case 'apk': {
     try {
         if (!text) {
             return replygcxeon('❌ Please specify your query! Usage: apk <AppName>');
@@ -2486,60 +2486,7 @@ case 'remini': {
         await replygcxeon('❌ An error occurred, please try again later.');
         console.error(err);
     }
-    break;
-    case 'scan': {
-    try {
-        // Check if the user replied to a photo
-        if (!m.quoted || !/image/.test(m.quoted.mtype)) {
-            return replygcxeon('❌ Please reply to a photo that you want to scan.');
-        }
-
-        // Fetch the photo as a buffer
-        let media = await XeonBotInc.downloadMediaMessage(m.quoted);
-        if (!media) throw new Error('Failed to fetch the photo.');
-
-        // Upload the image to a hosting service (optional step if the API requires a URL)
-        const uploadApiUrl = 'https://api.imgbb.com/1/upload';
-        const uploadApiKey = 'your_imgbb_api_key'; // Replace with your ImgBB API key
-        const formData = new FormData();
-        formData.append('key', uploadApiKey);
-        formData.append('image', media.toString('base64'));
-
-        const uploadResponse = await axios.post(uploadApiUrl, formData, {
-            headers: formData.getHeaders(),
-        });
-
-        if (!uploadResponse.data || !uploadResponse.data.data || !uploadResponse.data.data.url) {
-            throw new Error('Failed to upload the photo for scanning.');
-        }
-
-        const imageUrl = uploadResponse.data.data.url;
-
-        // Send the image URL to the scan API
-        const scanApiUrl = `https://api.davidcyriltech.my.id/imgscan?url=${encodeURIComponent(imageUrl)}`;
-        const scanResponse = await axios.get(scanApiUrl);
-
-        if (!scanResponse.data || !scanResponse.data.result) {
-            throw new Error('Failed to scan the image.');
-        }
-
-        // Retrieve the scan result
-        const scanResult = scanResponse.data.result;
-
-        // Send the scan result back to WhatsApp
-        await XeonBotInc.sendMessage(
-            m.chat,
-            {
-                text: `📄 *Scan Result:*\n\n${scanResult}`,
-            },
-            { quoted: m }
-        );
-    } catch (error) {
-        replygcxeon('❌ An error occurred while scanning the photo.');
-        console.error(error);
-    }
-    break;
-}         
+    break;  
 case 'mediafire': {
     if (!text) return replygcxeon(`*Example*: ${prefix + command} link...`);
 
@@ -2962,63 +2909,6 @@ case 'update':
                         replygcxeon(`BIG DADDY has Successful Reset, Group Invite Link ${groupMetadata.subject}`)
                     }).catch((err) => replygcxeon(json(err)))
                 break
-case 'ping':
-case 'p': {
-    const { exec } = require('child_process');
-
-    let timestamp = performance.now();
-    let latensi = performance.now() - timestamp;
-
-    // Execute system commands to gather server data
-    exec('uptime', (error, stdout, stderr) => {
-        if (error || stderr) {
-            console.error(`Error executing uptime: ${stderr || error.message}`);
-            return;
-        }
-
-        // Parsing the output of uptime to get the load and uptime
-        const uptimeInfo = stdout.trim().split(' up ')[1].split(', ');
-        const serverUptime = uptimeInfo[0] || 'Unavailable';
-        const loadAverage = uptimeInfo[1] || 'Unavailable';
-
-        // Beautified Response with a unique twist
-        const respon = `
-*BIG DADDY V1 A ripple in the digital void...* 🌌
-*Reaching the depths of the servers...* 🔍
-
-*PONG!* 💥
-
-> *Server Status:*
-> *Uptime:* *${serverUptime}*
-> *Load Average:* *${loadAverage}*
-> *Active Connections:** 500+ (estimate)
-> *Latency:** *${latensi.toFixed(2)}ms*
-> *Location:** Data Center - Region A
-> *Server Load:** Light
-
-*© ᴘʜ✦ꜱᴛᴀʀ*
-`.trim();
-
-        // Send the response to the user
-        XeonBotInc.sendMessage(m.chat, {
-            text: respon,
-            contextInfo: {
-                externalAdReply: {
-                    showAdAttribution: true,
-                    title: `${botname}`,
-                    body: `Response: ${latensi.toFixed(2)}ms`,
-                    thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp.',
-                    sourceUrl: global.link,
-                    mediaType: 1,
-                    renderLargerThumbnail: true
-                }
-            }
-        }, {
-            quoted: m
-        });
-    });
-}
-break;
 case 'p':
 case 'ping': {
     const used = process.memoryUsage();
@@ -3046,7 +2936,6 @@ case 'ping': {
     const response = `
 *Pong!* 🏓
 Response Speed: ${latency} seconds
-Runtime: ${runtime(process.uptime())}
 
 > *💻 BIG DADDY V1* Server Info
 RAM Usage: ${ramUsage}
@@ -5237,6 +5126,31 @@ ${readmore}
 ┣ ◁️⚡💥 𝐡𝐚𝐜𝐤𝐠𝐜  
 ╰━━━━━━━━━━━━━━━━━━╯
 
+╭⭑━━━➤ 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃 𝐌𝐄𝐍𝐔
+┣ ◁️💥 𝐩𝐥𝐚𝐲
+┣ ◁️💥 𝐦𝐞𝐝𝐢𝐚𝐟𝐢𝐫𝐞
+┣ ◁️💥 𝐬𝐜𝐫𝐞𝐞𝐧𝐬𝐡𝐨𝐭
+┣ ◁️💥 𝐬𝐡𝐚𝐳𝐚𝐦
+┣ ◁️💥 𝐫𝐞𝐦𝐢𝐧𝐢
+┣ ◁️💥 𝐚𝐩𝐤
+┣ ◁️💥 𝐟𝐛
+┣ ◁️💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦
+┣ ◁️💥 𝐠𝐞𝐧𝐞𝐫𝐚𝐭𝐞
+┣ ◁️💥 𝐬𝐨𝐧𝐠
+┣ ◁️💥 𝐭𝐢𝐤𝐭𝐨𝐤
+┣ ◁️💥 𝐟𝐛
+┣ ◁️💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦
+┣ ◁️💥 𝐲𝐭𝐦𝐩3
+┣ ◁️💥 𝐲𝐭𝐦𝐩4
+╰━━━━━━━━━━━━━━━━━━╯
+
+╭⭑━━━➤ sᴘᴇᴄɪᴀʟ ᴍᴇɴᴜ  
+┣ ◁️⚡💥 𝐩𝐫𝐨𝐦𝐨𝐭𝐞𝐬𝐞𝐥𝐟  
+┣ ◁️⚡💥 𝐛𝐚𝐧𝐭𝐮𝐭𝐨𝐫𝐢𝐚𝐥  
+┣ ◁️⚡💥 𝐬𝐜𝐫𝐞𝐞𝐧𝐬𝐡𝐨𝐭  
+┣ ◁️⚡💥 𝐮𝐩𝐝𝐚𝐭𝐞  
+╰━━━━━━━━━━━━━━━━━━╯
+
 ╭⭑━━━➤ ᴘʀᴏ ʙᴜɢs (ᴀɴᴅʀᴏɪᴅ)
 ┣ ◁️⚡💥 𝐜𝐫𝐚𝐬𝐡𝐩𝐨𝐨𝐥
 ┣ ◁️⚡💥 𝐬𝐡𝐨𝐭𝐩𝐨𝐨𝐥
@@ -5252,6 +5166,7 @@ ${readmore}
 
 ╭⭑━━━➤ ᴀɴᴛɪ-ʙᴜɢ
 ┣ ◁️⚡💥 𝐮𝐥𝐭𝐫𝐚𝐛𝐮𝐠 [𝐀𝐔𝐓𝐎]
+┣ ◁️⚡💥 𝐚𝐧𝐭𝐢𝐛𝐮𝐠 [𝐨𝐩𝐭𝐢𝐨𝐧]
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ ʙᴀɴ/ᴜɴʙᴀɴ
@@ -5260,11 +5175,14 @@ ${readmore}
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ sᴍᴀʀᴛ ᴍᴇɴᴜ  
-┣ ◁️⚡💥 𝐦𝐨𝐯𝐢𝐞  
+┣ ◁️⚡💥 𝐯𝐢𝐝𝐞𝐨  
 ┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐠𝐩𝐭  
 ┣ ◁️⚡💥 𝐰𝐞𝐚𝐭𝐡𝐞𝐫  
 ┣ ◁️⚡💥 𝐭𝐢𝐦𝐞  
 ┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐛𝐨𝐭 [𝐨𝐩𝐭𝐢𝐨𝐧]  
+┣ ◁️⚡💥 𝐠𝐩𝐭3  
+┣ ◁️⚡💥 𝐠𝐩𝐭2  
+┣ ◁️⚡💥 𝐠𝐨𝐨𝐠𝐥𝐞  
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ ᴀɴᴛɪ ᴍᴇɴᴜ  
@@ -5284,11 +5202,6 @@ ${readmore}
 ┣ ◁️⚡💥 𝐰𝐨𝐮𝐥𝐝𝐲𝐨𝐮𝐫𝐚𝐭𝐡𝐞𝐫  
 ┣ ◁️⚡💥 𝐭𝐫𝐢𝐯𝐢𝐚  
 ┣ ◁️⚡💥 𝐭𝐫𝐮𝐭𝐡  
-╰━━━━━━━━━━━━━━━━━━╯
-
-╭⭑━━━➤ sᴘᴇᴄɪᴀʟ ᴍᴇɴᴜ  
-┣ ◁️⚡💥 𝐩𝐫𝐨𝐦𝐨𝐭𝐞𝐬𝐞𝐥𝐟  
-┣ ◁️⚡💥 𝐛𝐚𝐧𝐭𝐮𝐭𝐨𝐫𝐢𝐚𝐥  
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ ᴏᴡɴᴇʀ ᴍᴇɴᴜ  
@@ -5334,6 +5247,7 @@ ${readmore}
 ┣ ◁️⚡💥 𝐬𝐜𝐫𝐢𝐩𝐭
 ┣ ◁️⚡💥 𝐝𝐨𝐧𝐚𝐭𝐞
 ┣ ◁️⚡💥 𝐨𝐰𝐧𝐞𝐫
+┣ ◁️⚡💥 𝐩𝐢𝐧𝐠
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ 𝐂𝐎𝐍𝐕𝐄𝐑𝐓 𝐌𝐄𝐍𝐔
@@ -5350,6 +5264,8 @@ ${readmore}
 ┣ ◁️⚡💥 𝐭𝐨𝐯𝐢𝐞𝐰𝐨𝐧𝐜𝐞
 ┣ ◁️⚡💥 𝐟𝐥𝐢𝐩𝐭𝐞𝐱𝐭
 ┣ ◁️⚡💥 𝐞𝐦𝐨𝐣𝐢𝐦𝐢𝐱
+┣ ◁️⚡💥 𝐭𝐞𝐱𝐭2𝐬𝐩𝐞𝐞𝐜𝐡
+┣ ◁️⚡💥 𝐭𝐞𝐱𝐭2𝐩𝐝𝐟
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ 𝐃𝐀𝐓𝐀𝐁𝐀𝐒𝐄 𝐌𝐄𝐍𝐔
@@ -5374,10 +5290,6 @@ ${readmore}
 ┣ ◁️⚡💥 𝐥𝐢𝐬𝐭𝐳𝐢𝐩
 ┣ ◁️⚡💥 𝐥𝐢𝐬𝐭𝐚𝐩𝐤
 ┣ ◁️⚡💥 𝐥𝐢𝐬𝐭𝐩𝐝𝐟
-╰━━━━━━━━━━━━━━━━━━╯
-
-╭⭑━━━➤ 𝐃𝐎𝐖𝐍 𝐌𝐄𝐍𝐔
-┣ ◁️💥🔊 𝐩𝐥𝐚𝐲
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ©*ᴘʜ✦ꜱᴛᴀʀ*`
