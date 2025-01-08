@@ -3047,7 +3047,7 @@ case 'ping': {
     const response = `
 *Pong!* 🏓
 Response Speed: ${latency} seconds
-Runtime: ${runtime}s
+Runtime: ${runtime(process.uptime())}
 
 > *💻 BIG DADDY V1* Server Info
 RAM Usage: ${ramUsage}
@@ -5230,7 +5230,7 @@ break
 ┃  ✨ *Creator: ᴘʜ✦ꜱᴛᴀʀ* 💫
 ┃  🧪 *Version: 1.0.0* 
 ┃  🤖 *Model: Big Daddy V1* 
-┃  ⏰ *Uptime:* *${runtime(process.uptime())} *
+┃  ⏰ *Uptime:* *${runtime(process.uptime())}*
 ▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓
 ${readmore}
 ╭⭑━━━➤ ʜᴀᴄᴋ ᴍᴇɴᴜ  
