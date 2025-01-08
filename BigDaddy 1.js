@@ -3032,8 +3032,7 @@ case 'ping': {
         return acc;
     }, { speed: 0, total: 0, times: { user: 0, nice: 0, sys: 0, idle: 0, irq: 0 } });
 
-    const latency = (performance.now() - speed()).toFixed(4);
-    const runtime = process.uptime();
+    const latency = (performance.now() - speed()).toFixed(4);  
     const ramUsage = formatp(os.totalmem() - os.freemem()) + ' / ' + formatp(os.totalmem());
 
     const cpuUsage = Object.keys(cpu.times).map(type => {
