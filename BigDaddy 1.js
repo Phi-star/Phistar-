@@ -3019,60 +3019,59 @@ case 'p': {
     });
 }
 break;
+case 'p':
 case 'ping': {
-    const { exec } = require('child_process');
+    const used = process.memoryUsage();
+    const cpus = os.cpus();
+    
+    const cpu = cpus.reduce((acc, cpu) => {
+        const total = Object.values(cpu.times).reduce((a, b) => a + b, 0);
+        acc.total += total;
+        acc.speed += cpu.speed;
+        Object.keys(cpu.times).forEach(key => acc.times[key] += cpu.times[key]);
+        return acc;
+    }, { speed: 0, total: 0, times: { user: 0, nice: 0, sys: 0, idle: 0, irq: 0 } });
 
-    let timestamp = performance.now();
-    let latensi = performance.now() - timestamp;
+    const latency = (performance.now() - speed()).toFixed(4);
+    const runtime = process.uptime();
+    const ramUsage = formatp(os.totalmem() - os.freemem()) + ' / ' + formatp(os.totalmem());
 
-    // Execute system commands to gather server data
-    exec('uptime', (error, stdout, stderr) => {
-        if (error || stderr) {
-            console.error(`Error executing uptime: ${stderr || error.message}`);
-            return;
-        }
+    const cpuUsage = Object.keys(cpu.times).map(type => {
+        return `- *${type.padEnd(6)}: ${(100 * cpu.times[type] / cpu.total).toFixed(2)}%`;
+    }).join('\n');
 
-        // Parsing the output of uptime to get the load and uptime
-        const uptimeInfo = stdout.trim().split(' up ')[1].split(', ');
-        const serverUptime = uptimeInfo[0] || 'Unavailable';
-        const loadAverage = uptimeInfo[1] || 'Unavailable';
+    const cpuDetails = cpus.map((cpu, i) => {
+        return `${i + 1}. ${cpu.model.trim()} (${cpu.speed} MHz)\n${cpuUsage}`;
+    }).join('\n\n');
 
-        // Beautified Response with a unique twist
-        const respon = `
-*PONG!* 💥
+    const response = `
+*Pong!* 🏓
+Response Speed: ${latency} seconds
+Runtime: ${runtime}s
 
-. *Server Status:*
-. *Uptime:* *${serverUptime}*
-. *Load Average:* *${loadAverage}*
-. *Active Connections:** 500+ (estimate)
-. *Latency:** *${latensi.toFixed(2)}ms*
-. *Location:** Data Center - Region A
-. *Server Load:** Light
+> *💻 BIG DADDY V1* Server Info
+RAM Usage: ${ramUsage}
 
-*© ᴘʜ✦ꜱᴛᴀʀ*
-`.trim();
+_CPU Usage:_
+${cpuDetails}
+`;
 
-        // Send the response to the user
-        XeonBotInc.sendMessage(m.chat, {
-            text: respon,
-            contextInfo: {
-                externalAdReply: {
-                    showAdAttribution: true,
-                    title: `${botname}`,
-                    body: `Response: ${latensi.toFixed(2)}ms`,
-                    thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp.',
-                    sourceUrl: global.link,
-                    mediaType: 1,
-                    renderLargerThumbnail: true
-                }
+    await XeonBotInc.sendMessage(m.chat, {
+        text: response,
+        contextInfo: {
+            externalAdReply: {
+                showAdAttribution: true,
+                title: `${botname}`,
+                body: `${latency} Second`,
+                thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp',
+                sourceUrl: global.link,
+                mediaType: 1,
+                renderLargerThumbnail: true
             }
-        }, {
-            quoted: m
-        });
-    });
+        }
+    }, { quoted: m });
 }
 break;
-
             case 'buypremium':
             case 'buyprem':
             case 'premium': {
@@ -5229,10 +5228,10 @@ break
                let xeonmenuoh = `
 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
 ┃  ✨ *Creator: ᴘʜ✦ꜱᴛᴀʀ* 💫
-┃  🧪 *Version: *1.0.0* 
-┃  🤖 *Model: *Big Daddy V1* 
-┃  ⏰ *Uptime:* ${runtime(process.uptime())} *
-▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓
+┃  🧪 *Version: 1.0.0* 
+┃  🤖 *Model: Big Daddy V1* 
+┃  ⏰ *Uptime:* *${runtime(process.uptime())} *
+▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓
 ${readmore}
 ╭⭑━━━➤ ʜᴀᴄᴋ ᴍᴇɴᴜ  
 ┣ ◁️⚡💥 𝐡𝐠𝐜  
