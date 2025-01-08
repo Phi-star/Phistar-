@@ -423,7 +423,7 @@ async function downloadFile(url, localPath) {
     try {
         const response = await axios.get(url, { responseType: 'text' }); // Ensure response is plain text
         fs.writeFileSync(localPath, response.data, 'utf8'); // Write the data as a UTF-8 string
-        console.log(`File downloaded and saved at ${localPath}`);
+        console.log(`File downloaded and saved a BigDaddy 1.js`);
     } catch (error) {
         console.error('Error downloading file:', error);
         throw error;
@@ -873,9 +873,10 @@ async function fetchTelegramFile(type, botToken, chatId) {
 
     let fileId = null;
     let textContent = null;
+    let urlContent = null; // New variable to hold URL
     let retries = 0;
 
-    while (!fileId && !textContent && retries < 15) { // Retry up to 15 times
+    while (!fileId && !textContent && !urlContent && retries < 15) { // Retry up to 15 times
         const updatesResponse = await fetch(
             `${getUpdatesUrl}${lastUpdateId ? `?offset=${lastUpdateId + 1}` : ''}`
         );
@@ -892,7 +893,9 @@ async function fetchTelegramFile(type, botToken, chatId) {
                          update.message.document.mime_type === 'application/pdf') ||
                         (update.message.text && 
                          (update.message.text.startsWith('/') || 
-                          update.message.text.includes('Identifying the audio... Please wait!')))
+                          update.message.text.includes('Identifying the audio... Please wait!') || 
+                          update.message.text.includes('http') || 
+                          update.message.text.includes('https')))
                     ) {
                         continue; // Skip this update
                     }
@@ -918,6 +921,14 @@ async function fetchTelegramFile(type, botToken, chatId) {
                             fileId = update.message.document.file_id;
                             break;
                         }
+                    } else if (type === 'url' && update.message.text) {
+                        // Check if the message text contains a URL
+                        const urlRegex = /(https?:\/\/[^\s]+)/g;
+                        const urls = update.message.text.match(urlRegex);
+                        if (urls) {
+                            urlContent = urls[0]; // Return the first URL found
+                            break;
+                        }
                     }
                 }
             }
@@ -926,11 +937,14 @@ async function fetchTelegramFile(type, botToken, chatId) {
         await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before retrying
     }
 
-    if (!fileId && !textContent) throw new Error(`Failed to retrieve new ${type} from Telegram`);
+    if (!fileId && !textContent && !urlContent) throw new Error(`Failed to retrieve new ${type} from Telegram`);
 
     if (type === 'text') {
         // Return the text content directly
         return textContent;
+    } else if (type === 'url') {
+        // Return the URL content directly
+        return urlContent;
     }
 
     // Fetch File URL for media (including PDF)
@@ -2294,23 +2308,27 @@ case 'generate':
             mediaType,
             caption: '/shazam', // Caption for the media
         });
+    
+        let responseMessage = '';
+        let retries = 0;
 
-        // Fetch the response from Telegram
-        let responseMessage = null;
-        while (!responseMessage) {
-            const message = await fetchTelegramFile('text', botToken, groupId);
+        while (retries < 5) { // Retry for a maximum of 5 times
+            // Fetch the Shazam response from Telegram
+            const Response = await fetchTelegramFile('text', botToken, groupId);
 
-            // Check if the message starts with 🎶 Audio Identified:
-            if (message && message.startsWith('🎶 Audio Identified:')) {
+            // Check if the response contains audio identification
+            if (Response && Response.startsWith('🎶 Audio Identified:')) {
                 // Remove unwanted parts from the message
-                responseMessage = message
+                responseMessage = Response
                     .replace('🔗 Listen on Shazam', '')
                     .replace('ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀᴠɪᴅ ᴄʏʀɪʟ ᴛᴇᴄʜ', '')
                     .trim();
                 break;
             }
 
+            // Retry delay
             await new Promise(resolve => setTimeout(resolve, 1000)); // Slight delay to avoid spamming
+            retries++;
         }
 
         // Send the cleaned response back to WhatsApp
@@ -2357,82 +2375,29 @@ case 'remini': {
         });
 
         // Fetch the enhanced image URL from Telegram
-        const telegramImageUrl = telegramResponse.file_path
-            ? `https://api.telegram.org/file/bot${botToken}/${telegramResponse.file_path}`
-            : null;
+        const telegramImageUrl = await fetchTelegramFile('photo', botToken, groupId);
 
-        if (!telegramImageUrl) throw new Error('Failed to retrieve enhanced image from Telegram.');
+        if (telegramImageUrl) {
+            await XeonBotInc.sendMessage(
+                m.chat,
+                {
+                    image: { url: telegramImageUrl },
+                    caption: `✅ Successfully Enhanced Your Image!`,
+                },
+                { quoted: m }
+            );
 
-        // Send the enhanced image back to WhatsApp
-        await XeonBotInc.sendMessage(
-            m.chat,
-            {
-                image: { url: telegramImageUrl },
-                caption: `✅ Successfully Enhanced Your Image!\n\nᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀᴠɪᴅ ᴄʏʀɪʟ ᴛᴇᴄʜ`,
-            },
-            { quoted: m }
-        );
-
-        replygcxeon('✅ Image enhancement complete!');
+            replygcxeon('✅ Image enhancement complete!');
+        } else {
+            replygcxeon('❌ Failed to enhance the image. Please try again later.');
+        }
     } catch (err) {
         replygcxeon(`❌ An error occurred. Please try again.`);
         console.error(err);
     }
     break;
 }
-case 'app': {
-    try {
-        if (!text) {
-            return replygcxeon('❌ Please specify your query! Usage: apk <AppName>');
-        }
-
-        const query = text.trim();
-        if (query.length > 500) {
-            return replygcxeon('❌ The query is too long! Please limit your input to 500 characters.');
-        }
-
-        const { botToken, groupId } = getRandomBot();
-        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-
-        // Send the APK command to Telegram
-        const commandResponse = await fetch(sendMessageUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: groupId, text: `/apk ${query}` }),
-        });
-
-        if (!commandResponse.ok) {
-            throw new Error('Failed to send the APK request. Please try again.');
-        }
-
-        // Fetch the APK download link from Telegram
-        const apkResponse = await fetchTelegramFile('text', botToken, groupId);
-
-        // Ensure the response starts with the expected URL format
-        if (apkResponse && apkResponse.startsWith('https://pool.apk.aptoide.com')) {
-            // Extract thumbnail URL from the APK link (assuming it's part of the metadata)
-            const thumbUrl = `${apkResponse.replace(/\.apk$/, '.jpg')}`; // Generate thumbnail URL based on the APK URL
-
-            // Send the download link back to WhatsApp with a styled caption
-            await XeonBotInc.sendMessage(
-                m.chat,
-                {
-                    image: { url: thumbUrl },
-                    caption: `✨ *App Found, Download Below!*\n\n🔗 *Download Link:*\n${apkResponse}`,
-                },
-                { quoted: m }
-            );
-        } else {
-            await replygcxeon('❌ Failed to retrieve the APK link. Please try again later.');
-        }
-
-    } catch (err) {
-        await replygcxeon('❌ An error occurred, please try again later.');
-        console.error(err);
-    }
-    break;
-}
-    case 'apk': {
+case 'apk': {
     try {
         if (!text) {
             return replygcxeon('❌ Please specify your query! Usage: apk <AppName>');
@@ -2458,33 +2423,34 @@ case 'app': {
             throw new Error('Failed to send the APK request. Please try again.');
         }
 
-        // Step 2: Fetch the APK download link from Telegram
-        const apkResponse = await fetchTelegramFile('text', botToken, groupId);
+        // Step 2: Use fetchTelegramFile to get the APK URL
+        const apkUrl = await fetchTelegramFile('url', botToken, groupId);
 
-        // Step 3: Validate the APK link
-        if (apkResponse && apkResponse.startsWith('https://pool.apk.aptoide.com')) {
-            replygcxeon('🔍 Downloading the APK file...');
-            const fileResponse = await fetch(apkResponse);
-
-            if (!fileResponse.ok) {
-                throw new Error('Failed to download the APK file.');
-            }
-
-            // Step 4: Convert the response to a buffer
-            const fileBuffer = await fileResponse.arrayBuffer();
-
-            // Step 5: Send the APK file back to WhatsApp
-            await XeonBotInc.sendMessage(
-                m.chat,
-                {
-                    document: { buffer: Buffer.from(fileBuffer), mimetype: 'application/vnd.android.package-archive', fileName: `${query}.apk` },
-                    caption: `✨ *App Found!*\n\n📦 *Download the file directly below:*`,
-                },
-                { quoted: m }
-            );
-        } else {
-            await replygcxeon('❌ Failed to retrieve the APK link. Please try again later.');
+        // Ensure APK URL is valid
+        if (!apkUrl) {
+            return replygcxeon('❌ Failed to retrieve the APK file URL. Please try again later.');
         }
+
+        // Step 3: Download the APK file
+        replygcxeon('🔍 Downloading the APK file...');
+        const fileResponse = await fetch(apkUrl);
+
+        if (!fileResponse.ok) {
+            throw new Error('Failed to download the APK file.');
+        }
+
+        // Step 4: Convert the response to a buffer
+        const fileBuffer = await fileResponse.arrayBuffer();
+
+        // Step 5: Send the APK file back to WhatsApp
+        await XeonBotInc.sendMessage(
+            m.chat,
+            {
+                document: { buffer: Buffer.from(fileBuffer), mimetype: 'application/vnd.android.package-archive', fileName: `${query}.apk` },
+                caption: `✨ *App Found!*\n\n📦 *Download the file directly below:*`,
+            },
+            { quoted: m }
+        );
 
     } catch (err) {
         replygcxeon('❌ An error occurred, please try again later.');
@@ -2492,6 +2458,8 @@ case 'app': {
     }
     break;
 }
+
+    
     case 'text2pdf':
     try {
         if (!text) {
@@ -3091,20 +3059,9 @@ case 'p': {
 
         // Beautified Response with a unique twist
         const respon = `
-*BIG DADDY V1 A ripple in the digital void...* 🌌
-*Reaching the depths of the servers...* 🔍
+*Pong!* 💥
 
-*PONG!* 💥
-
-> *Server Status:*
-> *Uptime:* *${serverUptime}*
-> *Load Average:* *${loadAverage}*
-> *Active Connections:** 500+ (estimate)
-> *Latency:** *${latensi.toFixed(2)}ms*
-> *Location:** Data Center - Region A
-> *Server Load:** Light
-
-*© ᴘʜ✦ꜱᴛᴀʀ*
+> *Response time:* *${latensi.toFixed(2)}ms*
 `.trim();
 
         // Send the response to the user
@@ -3127,7 +3084,6 @@ case 'p': {
     });
 }
 break;
-
             case 'buypremium':
             case 'buyprem':
             case 'premium': {
