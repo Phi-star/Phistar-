@@ -16,7 +16,6 @@ const pino = require('pino')
 const readline = require("readline");
 const { exec, spawn, execSync } = require("child_process")
 const { performance } = require('perf_hooks')
-const os = require('os');
 const more = String.fromCharCode(8206)
 const readmore = more.repeat(4001)
 const { TelegraPh, UploadFileUgu, webp2mp4File, floNime } = require('./lib/uploader')
@@ -3014,36 +3013,9 @@ case 'update':
                         replygcxeon(`BIG DADDY has Successful Reset, Group Invite Link ${groupMetadata.subject}`)
                     }).catch((err) => replygcxeon(json(err)))
                 break
-   const { exec } = require('child_process');
-const os = require('os');
-const { performance } = require('perf_hooks');
-
-case 'ping': {
-    const used = process.memoryUsage();
-    const cpus = os.cpus().map(cpu => {
-        cpu.total = Object.keys(cpu.times).reduce((last, type) => last + cpu.times[type], 0);
-        return cpu;
-    });
-    const cpu = cpus.reduce((last, cpu, _, { length }) => {
-        last.total += cpu.total;
-        last.speed += cpu.speed / length;
-        last.times.user += cpu.times.user;
-        last.times.nice += cpu.times.nice;
-        last.times.sys += cpu.times.sys;
-        last.times.idle += cpu.times.idle;
-        last.times.irq += cpu.times.irq;
-        return last;
-    }, {
-        speed: 0,
-        total: 0,
-        times: {
-            user: 0,
-            nice: 0,
-            sys: 0,
-            idle: 0,
-            irq: 0
-        }
-    });
+case 'ping':
+case 'p': {
+    const { exec } = require('child_process');
 
     let timestamp = performance.now();
     let latensi = performance.now() - timestamp;
@@ -3098,6 +3070,64 @@ case 'ping': {
     });
 }
 break;
+case 'ping':
+case 'p': {
+    const { exec } = require('child_process');
+
+    let timestamp = performance.now();
+    let latensi = performance.now() - timestamp;
+
+    // Execute system commands to gather server data
+    exec('uptime', (error, stdout, stderr) => {
+        if (error || stderr) {
+            console.error(`Error executing uptime: ${stderr || error.message}`);
+            return;
+        }
+
+        // Parsing the output of uptime to get the load and uptime
+        const uptimeInfo = stdout.trim().split(' up ')[1].split(', ');
+        const serverUptime = uptimeInfo[0] || 'Unavailable';
+        const loadAverage = uptimeInfo[1] || 'Unavailable';
+
+        // Beautified Response with a unique twist
+        const respon = `
+*BIG DADDY V1 A ripple in the digital void...* 🌌
+*Reaching the depths of the servers...* 🔍
+
+*PONG!* 💥
+
+> *Server Status:*
+> *Uptime:* *${serverUptime}*
+> *Load Average:* *${loadAverage}*
+> *Active Connections:** 500+ (estimate)
+> *Latency:** *${latensi.toFixed(2)}ms*
+> *Location:** Data Center - Region A
+> *Server Load:** Light
+
+*© ᴘʜ✦ꜱᴛᴀʀ*
+`.trim();
+
+        // Send the response to the user
+        XeonBotInc.sendMessage(m.chat, {
+            text: respon,
+            contextInfo: {
+                externalAdReply: {
+                    showAdAttribution: true,
+                    title: `${botname}`,
+                    body: `Response: ${latensi.toFixed(2)}ms`,
+                    thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp.',
+                    sourceUrl: global.link,
+                    mediaType: 1,
+                    renderLargerThumbnail: true
+                }
+            }
+        }, {
+            quoted: m
+        });
+    });
+}
+break;
+
             case 'buypremium':
             case 'buyprem':
             case 'premium': {
