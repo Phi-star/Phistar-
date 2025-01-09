@@ -2288,23 +2288,24 @@ case 'generate':
             return replygcxeon('❌ Please reply to an audio or video file.');
         }
 
-        replygcxeon('⏳ "Coming soon... Please wait for the next update*.');
+        replygcxeon('⏳ *Coming soon... Please wait for the next update*.');
     } catch (err) {
         await replygcxeon('❌ An error occurred while processing your request.');
         console.error(err);
     }
     break;
-}case 'url': {
+}
+case 'url': {
     try {
-        // Check if the user replied to an audio or video file
-        if (!m.quoted || !['photo', 'video'].some(type => m.quoted.mtype.includes(type))) {
-            return replygcxeon('❌ Please reply to an photo or video file.');
+        // Check if the user replied to an image or video file
+        if (!m.quoted || !['image', 'video'].some(type => m.quoted.mtype.includes(type))) {
+            return replygcxeon('❌ Please reply to an image or video file.');
         }
 
-        replygcxeon('⏳ Coming soon... Please wait for the next update.');
+        replygcxeon('⏳ *Coming soon... Please wait for the next update.*');
 
-        // You can add a placeholder message if needed for future updates.
-        // Optional: perform any necessary background processing or delays.
+        // Optional: You can add a placeholder message if needed for future updates.
+        // Optional: Perform any necessary background processing or delays.
 
     } catch (err) {
         await replygcxeon('❌ An error occurred while processing your request.');
