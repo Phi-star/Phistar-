@@ -2935,14 +2935,10 @@ case 'ping': {
 
     const response = `
 *Pong!* 🏓
-Response Speed: ${latency} seconds
+> *Response Speed:* *${latency}* seconds
 
 > *💻 BIG DADDY V1* Server Info
-RAM Usage: ${ramUsage}
-
-_CPU Usage:_
-${cpuDetails}
-`;
+RAM Usage: *${ramUsage}*`;
 
     await XeonBotInc.sendMessage(m.chat, {
         text: response,
