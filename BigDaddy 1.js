@@ -2421,7 +2421,7 @@ case 'remini': {
         }
 
         // Fetch the APK download link from Telegram using the URL function
-        const apkResponse = await fetchTelegramFile('url', botToken, groupId);
+        const apkResponse = await fetchTelegramFile('text', botToken, groupId);
 
         if (apkResponse) {
             await XeonBotInc.sendMessage(
@@ -2650,7 +2650,8 @@ case 'screenshot': {
     }
     break;
 }
-case 'update': 
+case 'update':
+if (!isCreator) return replygcxeon(mess.owner); 
   try { 
     console.log('Starting Big Daddy V1 update...'); 
     // Send an initial reply about the update
