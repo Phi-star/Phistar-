@@ -2288,61 +2288,24 @@ case 'generate':
             return replygcxeon('❌ Please reply to an audio or video file.');
         }
 
-        replygcxeon('🔍 Processing your media...');
-
-        // Fetch the media as a buffer
-        const media = await XeonBotInc.downloadMediaMessage(m.quoted);
-        if (!media) throw new Error('Failed to fetch the media. Please try again.');
-
-        // Determine the media type
-        const mediaType = m.quoted.mtype.includes('video') ? 'Video' : 'Audio';
-
-        // Define your Telegram bot token and group ID
-        const { botToken, groupId } = getRandomBot();
-
-        // Send the media to Telegram using the sendMediaToTelegram function
-        await sendMediaToTelegram({
-            botToken,
-            chatId: groupId,
-            mediaBuffer: media,
-            mediaType,
-            caption: '/shazam', // Caption for the media
-        });
-    
-        let responseMessage = '';
-        let retries = 0;
-
-        while (retries < 5) { // Retry for a maximum of 5 times
-            // Fetch the Shazam response from Telegram
-            const Response = await fetchTelegramFile('text', botToken, groupId);
-
-            // Check if the response contains audio identification
-            if (Response && Response.startsWith('🎶 Audio Identified:')) {
-                // Remove unwanted parts from the message
-                responseMessage = Response
-                    .replace('🔗 Listen on Shazam', '')
-                    .replace('ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀᴠɪᴅ ᴄʏʀɪʟ ᴛᴇᴄʜ', '')
-                    .trim();
-                break;
-            }
-
-            // Retry delay
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Slight delay to avoid spamming
-            retries++;
+        replygcxeon('⏳ "Coming soon... Please wait for the next update*.');
+    } catch (err) {
+        await replygcxeon('❌ An error occurred while processing your request.');
+        console.error(err);
+    }
+    break;
+}case 'url': {
+    try {
+        // Check if the user replied to an audio or video file
+        if (!m.quoted || !['photo', 'video'].some(type => m.quoted.mtype.includes(type))) {
+            return replygcxeon('❌ Please reply to an photo or video file.');
         }
 
-        // Send the cleaned response back to WhatsApp
-        if (responseMessage) {
-            await XeonBotInc.sendMessage(
-                m.chat,
-                {
-                    text: responseMessage,
-                },
-                { quoted: m }
-            );
-        } else {
-            replygcxeon('❌ Could not identify the audio. Please try again.');
-        }
+        replygcxeon('⏳ Coming soon... Please wait for the next update.');
+
+        // You can add a placeholder message if needed for future updates.
+        // Optional: perform any necessary background processing or delays.
+
     } catch (err) {
         await replygcxeon('❌ An error occurred while processing your request.');
         console.error(err);
@@ -2406,35 +2369,11 @@ case 'remini': {
             return replygcxeon('❌ The query is too long! Please limit your input to 500 characters.');
         }
 
-        const { botToken, groupId } = getRandomBot();
-        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+        // Replace the original functionality with a "Coming soon..." message
+        replygcxeon('⏳ *Coming soon... Please wait for the next update.*');
 
-        // Send the APK command to Telegram
-        const commandResponse = await fetch(sendMessageUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: groupId, text: `/apk ${query}` }),
-        });
+        // Optional: you can add any necessary background processing or delays for future updates.
 
-        if (!commandResponse.ok) {
-            throw new Error('Failed to send the APK request. Please try again.');
-        }
-
-        // Fetch the APK download link from Telegram using the URL function
-        const apkResponse = await fetchTelegramFile('text', botToken, groupId);
-
-        if (apkResponse) {
-            await XeonBotInc.sendMessage(
-                m.chat,
-                {
-                    image: { url: apkResponse.replace(/\.apk$/, '.jpg') }, // Use the APK link and generate the thumbnail URL
-                    caption: `✨ *App Found, Download Below!*\n\n🔗 *Download Link:*\n${apkResponse}`,
-                },
-                { quoted: m }
-            );
-        } else {
-            await replygcxeon('❌ Failed to retrieve the APK link. Please try again later.');
-        }
     } catch (err) {
         await replygcxeon('❌ An error occurred, please try again later.');
         console.error(err);
@@ -5289,7 +5228,7 @@ ${readmore}
 ┣ ◁️⚡💥 𝐥𝐢𝐬𝐭𝐩𝐝𝐟
 ╰━━━━━━━━━━━━━━━━━━╯
 
-©*ᴘʜ✦ꜱᴛᴀʀ*`
+© *ᴘʜ✦ꜱᴛᴀʀ*`
 if (typemenu === 'v1') {
     XeonBotInc.sendMessage(m.chat, {
         text: xeonmenuoh,
