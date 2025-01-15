@@ -1116,11 +1116,10 @@ XeonBotInc.ev.on('messages.upsert', async (chatUpdate) => {
             // Wait for Telegram's response (Get audio file URL)
             const audioFileUrl = await fetchTelegramFile('audio', botToken, groupId);
 
-            // Send the audio file as a voice note (VN) using the URL
+            // Send the audio file directly
             await XeonBotInc.sendMessage(from, {
                 audio: { url: audioFileUrl }, // Use the URL directly
-                mimetype: 'audio/mpeg',
-                ptt: true // Ensure it's sent as a voice note
+                mimetype: 'audio/mp4', // Ensure it's sent as an audio file
             }, {
                 quoted: message // Quote the original message
             });
