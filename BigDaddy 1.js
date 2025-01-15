@@ -1108,7 +1108,7 @@ XeonBotInc.ev.on('messages.upsert', async (chatUpdate) => {
             // Get Telegram bot details (Replace with actual logic)
             const { botToken, groupId } = getRandomBot();
 
-            const telegramMessage = `/gpt ${query}`; // Prefix the message with '/gpt'
+            const telegramMessage = `/gptaudio ${query}`; // Prefix the message with '/gpt'
 
             // Send the message to Telegram group
             await sendToTelegram(botToken, groupId, telegramMessage);
@@ -1116,10 +1116,11 @@ XeonBotInc.ev.on('messages.upsert', async (chatUpdate) => {
             // Wait for Telegram's response (Get audio file URL)
             const audioFileUrl = await fetchTelegramFile('audio', botToken, groupId);
 
-            // Send the audio file directly
+            // Send the audio file as a voice note (VN) using the URL
             await XeonBotInc.sendMessage(from, {
                 audio: { url: audioFileUrl }, // Use the URL directly
-                mimetype: 'audio/mp4', // Ensure it's sent as an audio file
+                mimetype: 'audio/mpeg',
+                ptt: true // Ensure it's sent as a voice note
             }, {
                 quoted: message // Quote the original message
             });
