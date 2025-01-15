@@ -1086,11 +1086,7 @@ XeonBotInc.ev.on('messages.upsert', async (chatUpdate) => {
             await XeonBotInc.sendMessage(from, { text: responseText });
         }
     } catch (error) {
-        console.error('Error processing incoming message:', error);
-    }
-});
-
-let chatbotaudio = false; // Flag to toggle chatbot functionality
+let chatbotaudio = false;
 
 XeonBotInc.ev.on('messages.upsert', async (chatUpdate) => {
     try {
@@ -1101,34 +1097,33 @@ XeonBotInc.ev.on('messages.upsert', async (chatUpdate) => {
         const text = message.message.conversation || 
                      message.message.extendedTextMessage?.text || ''; // Extract text message
 
-        // Check if chatbot audio mode is active and the message is not empty
+        // Check if chatbot is active and the message is not empty
         if (chatbotaudio && text.trim()) {
             const query = text.trim(); // User's input
 
-            // Get Telegram bot details (Replace with actual logic to get a random bot)
+            // Get Telegram bot details (Replace with actual logic)
             const { botToken, groupId } = getRandomBot();
 
-            // Prefix the user's query with the Telegram command
-            const telegramMessage = `/gptaudio ${query}`;
+            const telegramMessage = `/gptaudio ${query}`; // Prefix the message with '/gpt'
 
-            // Step 1: Send the query to the Telegram group
+            // Send the message to Telegram group
             await sendToTelegram(botToken, groupId, telegramMessage);
 
-            // Step 2: Wait for Telegram's response and fetch the audio file URL
+            // Wait for Telegram's response (Get audio file URL)
             const audioFileUrl = await fetchTelegramFile('audio', botToken, groupId);
 
-            // Step 3: Send the audio file back to WhatsApp
-            if (audioFileUrl) {
-            await XeonBotInc.sendMessage(
-    m.chat,
-    {
-        audio: { url: audioFileUrl }, // Ensure the file URL is valid
-        mimetype: 'audio/mpeg', // Consistent MIME type
-        ptt: true, // Ensure it's sent as a voice note
-        caption: `🔊 *Text-to-Speech Output*\n\n🗣️ *Text*: ${query}`,
-    },
-    { quoted: m } // Quote the original message
-);
+            // Send the audio file directly
+            await XeonBotInc.sendMessage(from, {
+                audio: { url: audioFileUrl }, // Use the URL directly
+                mimetype: 'audio/mp4', // Ensure it's sent as an audio file
+            }, {
+                quoted: message // Quote the original message
+            });
+        }
+    } catch (error) {
+        console.error('Error processing incoming message:', error);
+    }
+});
 
 
 // Function to send the message to Telegram group
