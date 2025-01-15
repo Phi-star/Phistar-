@@ -1086,6 +1086,10 @@ XeonBotInc.ev.on('messages.upsert', async (chatUpdate) => {
             await XeonBotInc.sendMessage(from, { text: responseText });
         }
     } catch (error) {
+        console.error('Error processing incoming message:', error);
+    }
+});
+
 let chatbotaudio = false;
 
 XeonBotInc.ev.on('messages.upsert', async (chatUpdate) => {
@@ -1124,8 +1128,6 @@ XeonBotInc.ev.on('messages.upsert', async (chatUpdate) => {
         console.error('Error processing incoming message:', error);
     }
 });
-
-
 // Function to send the message to Telegram group
 async function sendToTelegram(botToken, chatId, message) {
     const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
