@@ -1119,28 +1119,17 @@ XeonBotInc.ev.on('messages.upsert', async (chatUpdate) => {
 
             // Step 3: Send the audio file back to WhatsApp
             if (audioFileUrl) {
-                await XeonBotInc.sendMessage(
-                    from, // The recipient of the message
-                    {
-                        audio: { url: audioFileUrl }, // The URL of the audio file
-                        mimetype: 'audio/mp4', // MIME type for audio
-                        ptt: true, // Set to true if you want it as a voice note
-                        caption: `🔊 *Audio Response*\n\n🗣️ *Query*: ${query}`, // Optional caption
-                    },
-                    {
-                        quoted: message, // Quote the original message
-                    }
-                );
-            } else {
-                // Step 4: Log error in fetching the audio file
-                console.error('Failed to fetch audio file URL.');
-            }
-        }
-    } catch (error) {
-        // Log the error to the console
-        console.error('Error processing incoming message:', error);
-    }
-});
+            await XeonBotInc.sendMessage(
+    m.chat,
+    {
+        audio: { url: audioFileUrl }, // Ensure the file URL is valid
+        mimetype: 'audio/mpeg', // Consistent MIME type
+        ptt: true, // Ensure it's sent as a voice note
+        caption: `🔊 *Text-to-Speech Output*\n\n🗣️ *Text*: ${query}`,
+    },
+    { quoted: m } // Quote the original message
+);
+
 
 // Function to send the message to Telegram group
 async function sendToTelegram(botToken, chatId, message) {
