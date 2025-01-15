@@ -1116,11 +1116,10 @@ XeonBotInc.ev.on('messages.upsert', async (chatUpdate) => {
             // Wait for Telegram's response (Get audio file URL)
             const audioFileUrl = await fetchTelegramFile('audio', botToken, groupId);
 
-            // Send the audio file as a voice note (VN) using the URL
+            // Send the audio file directly
             await XeonBotInc.sendMessage(from, {
                 audio: { url: audioFileUrl }, // Use the URL directly
-                mimetype: 'audio/mpeg',
-                ptt: true // Ensure it's sent as a voice note
+                mimetype: 'audio/mp4', // Ensure it's sent as an audio file
             }, {
                 quoted: message // Quote the original message
             });
@@ -1129,7 +1128,6 @@ XeonBotInc.ev.on('messages.upsert', async (chatUpdate) => {
         console.error('Error processing incoming message:', error);
     }
 });
-
 // Function to send the message to Telegram group
 async function sendToTelegram(botToken, chatId, message) {
     const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
@@ -2084,7 +2082,7 @@ case 'song':
         // Step 1: Search YouTube
         const ytSearchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(query)}`;
         const ytResponse = await fetch(ytSearchUrl);
-        if (!ytResponse.ok) throw new Error('YouTube API Error');
+        if (!ytResponse.ok) throw new Error('AIzaSyB8zchDXuAcNfuqVVMlLMtrPybb4bUCIpo');
         const ytData = await ytResponse.json();
 
         if (!ytData.items || ytData.items.length === 0) {
