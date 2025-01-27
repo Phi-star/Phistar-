@@ -1374,44 +1374,46 @@ if (global.chatbot) {
         }
     }
 }
-// Event Listener for New Members
+// Event Listener for New Members or Members Leaving
 XeonBotInc.ev.on('group-participants.update', async (update) => {
     const autoWelcomeGroups = JSON.parse(fs.readFileSync('./database/autowelcome.json', 'utf-8') || '[]');
-
-    if (autoWelcomeGroups.includes(update.id)) {
-        if (update.action === 'add') {
-            for (let participant of update.participants) {
-                const user = `@${participant.split('@')[0]}`;
-                const welcomeMessage = `👋 Welcome ${user} to the group!\n\n📌 Make sure to follow the group rules and enjoy your stay!`;
-
-                // Send the welcome message and mention the new member
-                await XeonBotInc.sendMessage(update.id, {
-                    text: welcomeMessage,
-                    mentions: [participant]
-                });
-            }
-        }
-    }
-});
-
-XeonBotInc.ev.on('group-participants.update', async (update) => {
     const autoLeaveGroups = JSON.parse(fs.readFileSync('./database/autoleave.json', 'utf-8') || '[]');
 
-    if (autoLeaveGroups.includes(update.id)) {
-        if (update.action === 'remove') {
-            for (let participant of update.participants) {
-                const user = `@${participant.split('@')[0]}`;
-                const leaveMessage = `👋 Goodbye ${user}. We hope to see you again!`;
+    // Handle new members (welcome)
+    if (update.action === 'add' && autoWelcomeGroups.includes(update.id)) {
+        for (const participant of update.participants) {
+            const user = `@${participant.split('@')[0]}`;
+            const welcomeMessage = `👋 Welcome ${user} to the group!\n\n📌 Make sure to follow the group rules and enjoy your stay!`;
 
-                // Send the leave message and mention the user who left
-                await XeonBotInc.sendMessage(update.id, {
-                    text: leaveMessage,
-                    mentions: [participant]
-                });
-            }
+            // Send the welcome message
+            await XeonBotInc.sendMessage(update.id, {
+                text: welcomeMessage,
+                mentions: [participant]
+            });
+
+            // Break after sending one message (ensure it’s sent once per event)
+            break;
+        }
+    }
+
+    // Handle members leaving (farewell)
+    if (update.action === 'remove' && autoLeaveGroups.includes(update.id)) {
+        for (const participant of update.participants) {
+            const user = `@${participant.split('@')[0]}`;
+            const leaveMessage = `👋 Goodbye ${user}. We hope to see you again!`;
+
+            // Send the leave message
+            await XeonBotInc.sendMessage(update.id, {
+                text: leaveMessage,
+                mentions: [participant]
+            });
+
+            // Break after sending one message (ensure it’s sent once per event)
+            break;
         }
     }
 });
+
 let chatbotaudio = false;
 XeonBotInc.ev.on('messages.upsert', async (chatUpdate) => {
     try {
