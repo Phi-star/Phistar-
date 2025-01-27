@@ -634,23 +634,6 @@ async function searchSpotifyTracks(query) {
 function pickRandom(list) {
 return list[Math.floor(list.length * Math.random())]
 }
-const folderPath = './Phistar-media';  // Folder where the file is located
-const fileName = 'uploads.txt'; // Name of the file to upload
-const filePath = `${folderPath}/${fileName}`; // Full file path
-
-if (!fs.existsSync(filePath)) {
-    console.error(`❌ File not found: ${filePath}`);
-} else {
-    (async () => {
-        try {
-            const result = await catbox(filePath);
-            console.log(`✅ Uploaded file URL: ${result.url}`);
-        } catch (error) {
-            console.error(`❌ Error uploading file: ${error.message}`);
-        }
-    })();
-}
-// File auto-creation logic for catbox.js
 const catboxFilePath = './catbox.js';
 if (!fs.existsSync(catboxFilePath)) {
     console.log('📂 File "catbox.js" not found. Creating...');
@@ -688,8 +671,6 @@ module.exports = { catbox };
     fs.writeFileSync(catboxFilePath, catboxContent.trim());
     console.log('✅ File "catbox.js" created successfully.');
 }
-
-// Import the Catbox uploader
 const { catbox } = require('./catbox');
         if (!XeonBotInc.public) {
             if (!isCreator && !m.key.fromMe) return
@@ -750,42 +731,8 @@ if (global.antilink || global.antilinkkick || global.antilinkwarn) {
         }
     }
 }
-const vm = require('vm');
 
-// Function to interpret the obfuscated file and return the processed result
-async function processObfuscatedFile(filePath) {
-    try {
-        // Check if the file exists
-        if (!fs.existsSync(filePath)) {
-            throw new Error('File not found.');
-        }
-
-        // Read the obfuscated file
-        const obfuscatedCode = fs.readFileSync(filePath, 'utf8');
-
-        // Set up a sandbox to capture console output
-        let output = '';
-        const sandbox = {
-            console: {
-                log: (data) => (output += data + '\n'), // Capture console.log outputs
-                error: (data) => (output += 'Error: ' + data + '\n'),
-            },
-        };
-
-        // Create a VM context with the sandbox
-        const context = vm.createContext(sandbox);
-
-        // Run the obfuscated code inside the sandbox
-        vm.runInContext(obfuscatedCode, context);
-
-        // Return the captured output
-        return output.trim() || 'No output captured from the file.';
-    } catch (error) {
-        // Handle errors during execution
-        console.error('Error while processing obfuscated file:', error);
-        return `Error occurred while processing the file:\n\n${error.message}`;
-    }
-}
+        
         //bot number online status, available=online, unavailable=offline
         XeonBotInc.sendPresenceUpdate('uavailable', from)
         
@@ -1418,9 +1365,12 @@ if (global.chatbot) {
             // Check if the API returned a valid response
             if (jsonData.status && jsonData.BK9) {
                 XeonBotInc.sendMessage(m.chat, { text: jsonData.BK9 }, { quoted: m }); // Send the AI's response
+            } else {
+                replygcxeon(`*❌ Failed to fetch response from GPT-4. Please try again later.*`);
             }
         } catch (error) {
-            console.error('Error fetching GPT-4 response:', error); // Log the error in the console
+            console.error('Error fetching GPT-4 response:', error);
+            replygcxeon(`*❌ An error occurred while fetching the AI response. Please try again later.*`);
         }
     }
 }
@@ -1652,6 +1602,68 @@ case 'antidelete':
         replygcxeon('⚠️ Invalid option. Use "antidelete on" or "antidelete off".');
     }
     break;
+ case 'antilink': {
+    if (!isAdmins && !isCreator) return replygcxeon('⚠️ Only group admins or the bot owner can use the antilink command.');
+    if (!args[0]) return replygcxeon('⚠️ Usage: antilink on/off');
+
+    const settings = getGroupSettings(m.chat);
+
+    if (q === 'on') {
+        settings.antilinkdelete = true; // Activate antilink (delete messages containing links)
+        updateGroupSettings(m.chat, settings);
+        replygcxeon('✅ Antilink has been activated. The bot will delete messages containing links.');
+    } else if (q === 'off') {
+        settings.antilinkdelete = false; // Deactivate antilink
+        updateGroupSettings(m.chat, settings);
+        replygcxeon('❌ Antilink has been deactivated. Links are now allowed in the group.');
+    } else {
+        replygcxeon('⚠️ Invalid option. Use "antilink on" or "antilink off".');
+    }
+    break;
+}
+
+case 'antilink-kick': {
+    if (!isAdmins && !isCreator) return replygcxeon('⚠️ Only group admins or the bot owner can use the antilink-kick command.');
+    if (!args[0]) return replygcxeon('⚠️ Usage: antilink-kick on/off');
+
+    const settings = getGroupSettings(m.chat);
+
+    if (q === 'on') {
+        settings.antilinkkick = true; // Activate antilink-kick (remove users who post links)
+        settings.antilinkdelete = true; // Ensure messages are deleted as well
+        updateGroupSettings(m.chat, settings);
+        replygcxeon('✅ Antilink-kick has been activated. Members who post links will be removed.');
+    } else if (q === 'off') {
+        settings.antilinkkick = false; // Deactivate antilink-kick
+        updateGroupSettings(m.chat, settings);
+        replygcxeon('❌ Antilink-kick has been deactivated. Members will no longer be removed for posting links.');
+    } else {
+        replygcxeon('⚠️ Invalid option. Use "antilink-kick on" or "antilink-kick off".');
+    }
+    break;
+}
+
+case 'antilink-warn': {
+    if (!isAdmins && !isCreator) return replygcxeon('⚠️ Only group admins or the bot owner can use the antilink-warn command.');
+    if (!args[0]) return replygcxeon('⚠️ Usage: antilink-warn on/off');
+
+    const settings = getGroupSettings(m.chat);
+
+    if (q === 'on') {
+        settings.antilinkwarn = true; // Activate antilink-warn (warn users who post links)
+        settings.antilinkdelete = true; // Ensure messages are deleted as well
+        updateGroupSettings(m.chat, settings);
+        replygcxeon('✅ Antilink-warn has been activated. Members who post links will receive warnings.');
+    } else if (q === 'off') {
+        settings.antilinkwarn = false; // Deactivate antilink-warn
+        updateGroupSettings(m.chat, settings);
+        replygcxeon('❌ Antilink-warn has been deactivated. Members will no longer receive warnings for posting links.');
+    } else {
+        replygcxeon('⚠️ Invalid option. Use "antilink-warn on" or "antilink-warn off".');
+    }
+    break;
+}
+
     // Command to toggle Anti-Bug System ON or OFF
 case 'antibug':
     if (!isCreator) return replygcxeon('Only the bot owner can use Anti-Bug.');
@@ -2573,6 +2585,29 @@ case 'selectmovie': {
     }
     break;
 }
+case 'antispam': {
+    if (!m.isGroup) return replygcxeon(`*This command can only be used in groups!*`);
+    if (!isAdmins) return replygcxeon(`*Only group admins can use this command!*`);
+    if (!args[0]) return replygcxeon(`*Usage:* ${prefix + command} on/off [limit]\n\n*Example:* ${prefix + command} on 5`);
+
+    // Function to get and update spam settings for a group
+    const groupSpamSettings = getSpamSettings(m.chat); // Assume this function retrieves spam settings
+    const updateSpamSettings = (group, settings) => {
+        // Code to update the group spam settings in your database or cache
+    };
+
+    if (args[0].toLowerCase() === 'on') {
+        const spamLimit = parseInt(args[1]) || 5; // Default spam limit is 5 messages
+        updateSpamSettings(m.chat, { enabled: true, spamLimit });
+        replygcxeon(`*✅ Antispam enabled with a limit of ${spamLimit} messages.*`);
+    } else if (args[0].toLowerCase() === 'off') {
+        updateSpamSettings(m.chat, { enabled: false });
+        replygcxeon(`*❌ Antispam disabled.*`);
+    } else {
+        replygcxeon(`*Usage:* ${prefix + command} on/off [limit]\n\n*Example:* ${prefix + command} on 5`);
+    }
+    break;
+}
 case 'secmovie': {
     if (!text) return replygcxeon(`❗ Example: ${prefix + command} <number>\nChoose a quality number from the list provided earlier.`);
     if (!global.movieLinks || global.movieLinks.length === 0) {
@@ -2757,7 +2792,7 @@ case 'llama': {
     }
     break;
 }
-case 'Big-Daddy-ai': {
+case 'big-daddy-ai': {
     if (!text) {
         replygcxeon('Hello! How can I assist you today.');
         return;
@@ -2810,43 +2845,6 @@ case 'ngl': {
     } catch (error) {
         console.error('Error in NGL command:', error);
         replygcxeon(`*AN ERROR OCCURRED!! MESSAGE :*\n\n> ${error.message}`);
-    }
-    break;
-}
-case 'getcode': {
-    try {
-        // Get the file name and download the file
-        const fileName = m.quoted?.message?.documentMessage?.fileName || 'obfuscated_file.js';
-        const filePath = `./${fileName}`;
-
-        // Save the file locally
-        const fileBuffer = await XeonBotInc.downloadMediaMessage(m.quoted);
-        fs.writeFileSync(filePath, fileBuffer);
-
-        // Process the file to capture the interpreted output
-        const result = await processObfuscatedFile(filePath);
-
-        // Send the processed result back via WhatsApp
-        if (result) {
-            await XeonBotInc.sendMessage(
-                m.chat,
-                {
-                    document: Buffer.from(result, 'utf-8'),
-                    mimetype: 'application/javascript',
-                    fileName: 'interpreted_output.js',
-                },
-                { quoted: m }
-            );
-
-            // Optionally delete the file after processing
-            fs.unlinkSync(filePath);
-        } else {
-            replygcxeon('*No output was captured from the file.*');
-        }
-    } catch (error) {
-        // Handle errors and send back detailed information
-        console.error('Error during getcode command:', error);
-        replygcxeon(`*Error occurred while processing your request:*\n\n${error.stack || error.message}`);
     }
     break;
 }
@@ -6215,28 +6213,45 @@ ${readmore}
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃 𝐌𝐄𝐍𝐔
-┣ ◁️💥 𝐩𝐥𝐚𝐲
-┣ ◁️💥 𝐦𝐞𝐝𝐢𝐚𝐟𝐢𝐫𝐞
-┣ ◁️💥 𝐬𝐜𝐫𝐞𝐞𝐧𝐬𝐡𝐨𝐭
-┣ ◁️💥 𝐬𝐡𝐚𝐳𝐚𝐦
-┣ ◁️💥 𝐫𝐞𝐦𝐢𝐧𝐢
-┣ ◁️💥 𝐚𝐩𝐤
-┣ ◁️💥 𝐟𝐛
-┣ ◁️💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦
-┣ ◁️💥 𝐠𝐞𝐧𝐞𝐫𝐚𝐭𝐞
-┣ ◁️💥 𝐬𝐨𝐧𝐠
-┣ ◁️💥 𝐭𝐢𝐤𝐭𝐨𝐤
-┣ ◁️💥 𝐟𝐛
-┣ ◁️💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦
-┣ ◁️💥 𝐲𝐭𝐦𝐩3
-┣ ◁️💥 𝐲𝐭𝐦𝐩4
+┣ ◁️⚡💥 𝐩𝐥𝐚𝐲
+┣ ◁️⚡💥 𝐦𝐞𝐝𝐢𝐚𝐟𝐢𝐫𝐞
+┣ ◁️⚡💥 𝐬𝐜𝐫𝐞𝐞𝐧𝐬𝐡𝐨𝐭
+┣ ◁️⚡💥 𝐬𝐡𝐚𝐳𝐚𝐦
+┣ ◁️⚡💥 𝐫𝐞𝐦𝐢𝐧𝐢
+┣ ◁️⚡💥 𝐚𝐩𝐤
+┣ ◁️⚡💥 𝐟𝐛
+┣ ◁️⚡💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦
+┣ ◁️⚡💥 𝐠𝐞𝐧𝐞𝐫𝐚𝐭𝐞
+┣ ◁️⚡💥 𝐬𝐨𝐧𝐠
+┣ ◁️⚡💥 𝐭𝐢𝐤𝐭𝐨𝐤
+┣ ◁️⚡💥 𝐟𝐛
+┣ ◁️⚡💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦
+┣ ◁️⚡💥 𝐲𝐭𝐦𝐩3
+┣ ◁️⚡💥 𝐲𝐭𝐦𝐩4
+┣ ◁️⚡💥 𝐥𝐲𝐫𝐢𝐜𝐬
+┣ ◁️⚡💥 𝐭𝐢𝐤𝐭𝐨𝐤𝐬𝐭𝐚𝐥𝐤
+┣ ◁️⚡💥 𝐢𝐦𝐠𝐬𝐜𝐚𝐧
+┣ ◁️⚡💥 𝐢𝐦𝐚𝐠𝐬𝐞𝐚𝐫𝐜𝐡
+┣ ◁️⚡💥 𝐠𝐞𝐭
+┣ ◁️⚡💥 𝐧𝐠𝐥
+┣ ◁️⚡💥 𝐝𝐢𝐚𝐫𝐲
+┣ ◁️⚡💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦𝐬𝐭𝐚𝐥𝐤
+┣ ◁️⚡💥 𝐬𝐚𝐯𝐞𝐜𝐨𝐧𝐭𝐚𝐜𝐭
+┣ ◁️⚡💥 𝐦𝐨𝐯𝐢𝐞
 ╰━━━━━━━━━━━━━━━━━━╯
 
-╭⭑━━━➤ sᴘᴇᴄɪᴀʟ ᴍᴇɴᴜ  
-┣ ◁️⚡💥 𝐩𝐫𝐨𝐦𝐨𝐭𝐞𝐬𝐞𝐥𝐟  
-┣ ◁️⚡💥 𝐛𝐚𝐧𝐭𝐮𝐭𝐨𝐫𝐢𝐚𝐥  
-┣ ◁️⚡💥 𝐬𝐜𝐫𝐞𝐞𝐧𝐬𝐡𝐨𝐭  
-┣ ◁️⚡💥 𝐮𝐩𝐝𝐚𝐭𝐞  
+╭⭑━━━➤ sᴘᴇᴄɪᴀʟ ᴍᴇɴᴜ
+┣ ◁️⚡💥 𝐩𝐫𝐨𝐦𝐨𝐭𝐞𝐬𝐞𝐥𝐟
+┣ ◁️⚡💥 𝐛𝐚𝐧𝐭𝐮𝐭𝐨𝐫𝐢𝐚𝐥
+┣ ◁️⚡💥 𝐬𝐜𝐫𝐞𝐞𝐧𝐬𝐡𝐨𝐭
+┣ ◁️⚡💥 𝐮𝐩𝐝𝐚𝐭𝐞
+┣ ◁️⚡💥 𝐨𝐧𝐥𝐢𝐧𝐞𝐜𝐨𝐮𝐧𝐭𝐫𝐢𝐞𝐬
+┣ ◁️⚡💥 𝐧𝐮𝐦𝐛𝐞𝐫𝐢𝐧𝐛𝐨𝐱
+┣ ◁️⚡💥 𝐭𝐞𝐦𝐩𝐧𝐮𝐦𝐛𝐞𝐫
+┣ ◁️⚡💥 𝐭𝐫𝐚𝐜𝐤𝐢𝐩
+┣ ◁️⚡💥 𝐢𝐩
+┣ ◁️⚡💥 𝐬𝐞𝐜𝐦𝐨𝐯𝐢𝐞
+┣ ◁️⚡💥 𝐬𝐞𝐥𝐞𝐜𝐭𝐦𝐨𝐯𝐢𝐞
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ ᴘʀᴏ ʙᴜɢs (ᴀɴᴅʀᴏɪᴅ)
@@ -6262,23 +6277,33 @@ ${readmore}
 ┣ ◁️⚡💥 𝐮𝐧𝐛𝐚𝐧 
 ╰━━━━━━━━━━━━━━━━━━╯
 
-╭⭑━━━➤ sᴍᴀʀᴛ ᴍᴇɴᴜ  
-┣ ◁️⚡💥 𝐯𝐢𝐝𝐞𝐨  
-┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐠𝐩𝐭  
-┣ ◁️⚡💥 𝐰𝐞𝐚𝐭𝐡𝐞𝐫  
-┣ ◁️⚡💥 𝐭𝐢𝐦𝐞  
-┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐛𝐨𝐭 [𝐨𝐩𝐭𝐢𝐨𝐧] 
-┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐛𝐨𝐭𝐚𝐮𝐝𝐢𝐨 [𝐨𝐩𝐭𝐢𝐨𝐧] 
-┣ ◁️⚡💥 𝐠𝐩𝐭3  
-┣ ◁️⚡💥 𝐠𝐩𝐭2  
-┣ ◁️⚡💥 𝐠𝐨𝐨𝐠𝐥𝐞  
+╭⭑━━━➤ sᴍᴀʀᴛ ᴍᴇɴᴜ
+┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐠𝐩𝐭
+┣ ◁️⚡💥 𝐰𝐞𝐚𝐭𝐡𝐞𝐫
+┣ ◁️⚡💥 𝐭𝐢𝐦𝐞
+┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐛𝐨𝐭 [𝐨𝐩𝐭𝐢𝐨𝐧]
+┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐛𝐨𝐭𝐚𝐮𝐝𝐢𝐨 [𝐨𝐩𝐭𝐢𝐨𝐧]
+┣ ◁️⚡💥 𝐠𝐩𝐭3
+┣ ◁️⚡💥 𝐠𝐩𝐭2
+┣ ◁️⚡💥 𝐠𝐨𝐨𝐠𝐥𝐞
+┣ ◁️⚡💥 𝐠𝐞𝐦𝐢𝐧𝐢
+┣ ◁️⚡💥 𝐠𝐞𝐦𝐢𝐧𝐢2
+┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐠𝐩𝐭4
+┣ ◁️⚡💥 𝐛𝐥𝐚𝐜𝐤𝐛𝐨𝐱
+┣ ◁️⚡💥 𝐠𝐩𝐭𝐩𝐫𝐨
+┣ ◁️⚡💥 𝐠𝐩𝐭4
+┣ ◁️⚡💥 𝐛𝐢𝐠-𝐝𝐚𝐝𝐝𝐲-𝐚𝐢
+┣ ◁️⚡💥 𝐥𝐥𝐚𝐦𝐚
 ╰━━━━━━━━━━━━━━━━━━╯
 
-╭⭑━━━➤ ᴀɴᴛɪ ᴍᴇɴᴜ  
+╭⭑━━━➤ ᴀɴᴛɪ ᴍᴇɴᴜ
 ┣ ◁️⚡💥 𝐚𝐧𝐭𝐢𝐛𝐢𝐥𝐥𝐢𝐧𝐠 [𝐨𝐩𝐭𝐢𝐨𝐧]
 ┣ ◁️⚡💥 𝐚𝐧𝐭𝐢𝐝𝐞𝐥𝐞𝐭𝐞 [𝐨𝐩𝐭𝐢𝐨𝐧]
 ┣ ◁️⚡💥 𝐚𝐧𝐭𝐢𝐥𝐢𝐧𝐤 [𝐨𝐩𝐭𝐢𝐨𝐧]
 ┣ ◁️⚡💥 𝐚𝐧𝐭𝐢𝐜𝐚𝐥𝐥 [𝐨𝐩𝐭𝐢𝐨𝐧]
+┣ ◁️⚡💥 𝐚𝐧𝐭𝐢𝐬𝐩𝐚𝐦 [𝐨𝐩𝐭𝐢𝐨𝐧]
+┣ ◁️⚡💥 𝐚𝐧𝐭𝐢𝐥𝐢𝐧𝐤-𝐰𝐚𝐫𝐧 [𝐨𝐩𝐭𝐢𝐨𝐧]
+┣ ◁️⚡💥 𝐚𝐧𝐭𝐢𝐥𝐢𝐧𝐤-𝐤𝐢𝐜𝐤 [𝐨𝐩𝐭𝐢𝐨𝐧]
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ ɢᴀᴍᴇs ᴍᴇɴᴜ  
@@ -6311,7 +6336,7 @@ ${readmore}
 ┣ ◁️⚡💥 𝐮𝐧𝐛𝐥𝐨𝐜𝐤  
 ╰━━━━━━━━━━━━━━━━━━╯
 
-╭⭑━━━➤ 𝐆𝐑𝐎𝐔𝐏 𝐌𝐄𝐍𝐔  
+╭⭑━━━➤ 𝐆𝐑𝐎𝐔𝐏 𝐌𝐄𝐍𝐔
 ┣ ◁️⚡💥 𝐜𝐥𝐨𝐬𝐞𝐭𝐢𝐦𝐞
 ┣ ◁️⚡💥 𝐨𝐩𝐞𝐧𝐭𝐢𝐦𝐞
 ┣ ◁️⚡💥 𝐤𝐢𝐜𝐤
@@ -6325,7 +6350,9 @@ ${readmore}
 ┣ ◁️⚡💥 𝐠𝐫𝐨𝐮𝐩 []
 ┣ ◁️⚡💥 𝐞𝐝𝐢𝐭𝐢𝐧𝐟𝐨
 ┣ ◁️⚡💥 𝐥𝐢𝐧𝐤𝐠𝐜
-┣ ◁️⚡💥 𝐫𝐞𝐯𝐨𝐤𝐞
+┣ ◁️⚡💥 𝐫𝐞𝐦𝐨𝐯𝐞
+┣ ◁️⚡💥 𝐩𝐫𝐨𝐦𝐨𝐭𝐞𝐚𝐥𝐥
+┣ ◁️⚡💥 𝐝𝐞𝐦𝐨𝐭𝐞𝐚𝐥𝐥
 ┣ ◁️⚡💥 𝐥𝐢𝐬𝐭𝐨𝐧𝐥𝐢𝐧𝐞
 ╰━━━━━━━━━━━━━━━━━━╯
 
