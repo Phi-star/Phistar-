@@ -1374,9 +1374,45 @@ if (global.chatbot) {
         }
     }
 }
+// Event Listener for New Members
+XeonBotInc.ev.on('group-participants.update', async (update) => {
+    const autoWelcomeGroups = JSON.parse(fs.readFileSync('./database/autowelcome.json', 'utf-8') || '[]');
 
+    if (autoWelcomeGroups.includes(update.id)) {
+        if (update.action === 'add') {
+            for (let participant of update.participants) {
+                const user = `@${participant.split('@')[0]}`;
+                const welcomeMessage = `👋 Welcome ${user} to the group!\n\n📌 Make sure to follow the group rules and enjoy your stay!`;
+
+                // Send the welcome message and mention the new member
+                await XeonBotInc.sendMessage(update.id, {
+                    text: welcomeMessage,
+                    mentions: [participant]
+                });
+            }
+        }
+    }
+});
+
+XeonBotInc.ev.on('group-participants.update', async (update) => {
+    const autoLeaveGroups = JSON.parse(fs.readFileSync('./database/autoleave.json', 'utf-8') || '[]');
+
+    if (autoLeaveGroups.includes(update.id)) {
+        if (update.action === 'remove') {
+            for (let participant of update.participants) {
+                const user = `@${participant.split('@')[0]}`;
+                const leaveMessage = `👋 Goodbye ${user}. We hope to see you again!`;
+
+                // Send the leave message and mention the user who left
+                await XeonBotInc.sendMessage(update.id, {
+                    text: leaveMessage,
+                    mentions: [participant]
+                });
+            }
+        }
+    }
+});
 let chatbotaudio = false;
-
 XeonBotInc.ev.on('messages.upsert', async (chatUpdate) => {
     try {
         const message = chatUpdate.messages[0]; // Get the incoming message
@@ -1602,67 +1638,121 @@ case 'antidelete':
         replygcxeon('⚠️ Invalid option. Use "antidelete on" or "antidelete off".');
     }
     break;
- case 'antilink': {
-    if (!isAdmins && !isCreator) return replygcxeon('⚠️ Only group admins or the bot owner can use the antilink command.');
-    if (!args[0]) return replygcxeon('⚠️ Usage: antilink on/off');
+ 
+case 'antilink-kick':
+    if (!m.isGroup) return replygcxeon(mess.group);
+    if (!isAdmins && !isCreator) return replygcxeon(mess.admin);
+    if (!isBotAdmins) return replygcxeon(mess.botAdmin);
+    if (args.length < 1) return replygcxeon(`Example: ${prefix + command} on/off`);
 
-    const settings = getGroupSettings(m.chat);
-
-    if (q === 'on') {
-        settings.antilinkdelete = true; // Activate antilink (delete messages containing links)
-        updateGroupSettings(m.chat, settings);
-        replygcxeon('✅ Antilink has been activated. The bot will delete messages containing links.');
-    } else if (q === 'off') {
-        settings.antilinkdelete = false; // Deactivate antilink
-        updateGroupSettings(m.chat, settings);
-        replygcxeon('❌ Antilink has been deactivated. Links are now allowed in the group.');
-    } else {
-        replygcxeon('⚠️ Invalid option. Use "antilink on" or "antilink off".');
-    }
-    break;
-}
-
-case 'antilink-kick': {
-    if (!isAdmins && !isCreator) return replygcxeon('⚠️ Only group admins or the bot owner can use the antilink-kick command.');
-    if (!args[0]) return replygcxeon('⚠️ Usage: antilink-kick on/off');
-
-    const settings = getGroupSettings(m.chat);
+    // Read the current data from the file
+    const antilinkKickGroups = JSON.parse(fs.readFileSync('./database/antilinkkick.json', 'utf-8') || '[]');
 
     if (q === 'on') {
-        settings.antilinkkick = true; // Activate antilink-kick (remove users who post links)
-        settings.antilinkdelete = true; // Ensure messages are deleted as well
-        updateGroupSettings(m.chat, settings);
-        replygcxeon('✅ Antilink-kick has been activated. Members who post links will be removed.');
+        if (antilinkKickGroups.includes(m.chat)) return replygcxeon("✅ Anti-Link Kick is already activated in this group.");
+        
+        // Add the group ID to the file
+        antilinkKickGroups.push(m.chat);
+        fs.writeFileSync('./database/antilinkkick.json', JSON.stringify(antilinkKickGroups, null, 2));
+        replygcxeon("✅ Anti-Link Kick has been activated in this group. Any link sent will result in the user being removed.");
     } else if (q === 'off') {
-        settings.antilinkkick = false; // Deactivate antilink-kick
-        updateGroupSettings(m.chat, settings);
-        replygcxeon('❌ Antilink-kick has been deactivated. Members will no longer be removed for posting links.');
+        if (!antilinkKickGroups.includes(m.chat)) return replygcxeon("❌ Anti-Link Kick is already disabled for this group.");
+        
+        // Remove the group ID from the file
+        const updatedGroups = antilinkKickGroups.filter(group => group !== m.chat);
+        fs.writeFileSync('./database/antilinkkick.json', JSON.stringify(updatedGroups, null, 2));
+        replygcxeon("✅ Anti-Link Kick has been disabled for this group.");
     } else {
-        replygcxeon('⚠️ Invalid option. Use "antilink-kick on" or "antilink-kick off".');
+        replygcxeon(`❌ Invalid option! Use:\n- *${prefix + command} on* to enable\n- *${prefix + command} off* to disable.`);
+    }
+
+    // Monitor messages for links, warn and remove the user
+    if (antilinkKickGroups.includes(m.chat)) {
+        const linkRegex = /https?:\/\/[^\s]+/; // Regex to detect links
+        if (linkRegex.test(m.text)) {
+            replygcxeon(`⚠️ @${m.sender.split('@')[0]}, you will be removed for sending links in this group!`);
+            
+            // Delete the message containing the link
+            m.delete();
+
+            // Remove the user from the group
+            setTimeout(() => {
+                conn.groupParticipantsUpdate(m.chat, [m.sender], 'remove')
+                    .then(() => {
+                        replygcxeon(`🚫 User @${m.sender.split('@')[0]} has been removed for violating the no-link rule.`);
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                        replygcxeon("❌ Failed to remove the user. Ensure the bot has admin rights.");
+                    });
+            }, 2000); // Delay for better user feedback
+        }
     }
     break;
-}
+    case 'autowelcome':
+    if (!m.isGroup) return replygcxeon(mess.group);
+    if (!isAdmins && !isCreator) return replygcxeon(mess.admin);
+    if (!isBotAdmins) return replygcxeon(mess.botAdmin);
+    if (args.length < 1) return replygcxeon(`Example: ${prefix + command} on/off`);
 
-case 'antilink-warn': {
-    if (!isAdmins && !isCreator) return replygcxeon('⚠️ Only group admins or the bot owner can use the antilink-warn command.');
-    if (!args[0]) return replygcxeon('⚠️ Usage: antilink-warn on/off');
-
-    const settings = getGroupSettings(m.chat);
+    // Read the current data from the file
+    const autoWelcomeGroups = JSON.parse(fs.readFileSync('./database/autowelcome.json', 'utf-8') || '[]');
 
     if (q === 'on') {
-        settings.antilinkwarn = true; // Activate antilink-warn (warn users who post links)
-        settings.antilinkdelete = true; // Ensure messages are deleted as well
-        updateGroupSettings(m.chat, settings);
-        replygcxeon('✅ Antilink-warn has been activated. Members who post links will receive warnings.');
+        if (autoWelcomeGroups.includes(m.chat)) return replygcxeon("✅ Auto-Welcome is already activated in this group.");
+        
+        // Add the group ID to the file
+        autoWelcomeGroups.push(m.chat);
+        fs.writeFileSync('./database/autowelcome.json', JSON.stringify(autoWelcomeGroups, null, 2));
+        replygcxeon("✅ Auto-Welcome has been activated in this group. New members will be welcomed automatically.");
     } else if (q === 'off') {
-        settings.antilinkwarn = false; // Deactivate antilink-warn
-        updateGroupSettings(m.chat, settings);
-        replygcxeon('❌ Antilink-warn has been deactivated. Members will no longer receive warnings for posting links.');
+        if (!autoWelcomeGroups.includes(m.chat)) return replygcxeon("❌ Auto-Welcome is already disabled for this group.");
+        
+        // Remove the group ID from the file
+        const updatedGroups = autoWelcomeGroups.filter(group => group !== m.chat);
+        fs.writeFileSync('./database/autowelcome.json', JSON.stringify(updatedGroups, null, 2));
+        replygcxeon("✅ Auto-Welcome has been disabled for this group.");
     } else {
-        replygcxeon('⚠️ Invalid option. Use "antilink-warn on" or "antilink-warn off".');
+        replygcxeon(`❌ Invalid option! Use:\n- *${prefix + command} on* to enable\n- *${prefix + command} off* to disable.`);
     }
     break;
-}
+case 'antilink-warn':
+    if (!m.isGroup) return replygcxeon(mess.group);
+    if (!isAdmins && !isCreator) return replygcxeon(mess.admin);
+    if (!isBotAdmins) return replygcxeon(mess.botAdmin);
+    if (args.length < 1) return replygcxeon(`Example: ${prefix + command} on/off`);
+
+    // Read the current data from the file
+    const antilinkWarnGroups = JSON.parse(fs.readFileSync('./database/antilinkall.json', 'utf-8') || '[]');
+
+    if (q === 'on') {
+        if (antilinkWarnGroups.includes(m.chat)) return replygcxeon("✅ Anti-Link Warn is already activated in this group.");
+        
+        // Add the group ID to the file
+        antilinkWarnGroups.push(m.chat);
+        fs.writeFileSync('./database/antilinkall.json', JSON.stringify(antilinkWarnGroups, null, 2));
+        replygcxeon("✅ Anti-Link Warn has been activated in this group. Any link sent will trigger a warning.");
+    } else if (q === 'off') {
+        if (!antilinkWarnGroups.includes(m.chat)) return replygcxeon("❌ Anti-Link Warn is already disabled for this group.");
+        
+        // Remove the group ID from the file
+        const updatedGroups = antilinkWarnGroups.filter(group => group !== m.chat);
+        fs.writeFileSync('./database/antilinkall.json', JSON.stringify(updatedGroups, null, 2));
+        replygcxeon("✅ Anti-Link Warn has been disabled for this group.");
+    } else {
+        replygcxeon(`❌ Invalid option! Use:\n- *${prefix + command} on* to enable\n- *${prefix + command} off* to disable.`);
+    }
+
+    // Monitor messages for links and send a warning
+    if (antilinkWarnGroups.includes(m.chat)) {
+        const linkRegex = /https?:\/\/[^\s]+/; // Regex to detect links
+        if (linkRegex.test(m.text)) {
+            replygcxeon(`⚠️ Warning: @${m.sender.split('@')[0]}, sending links is not allowed in this group!`);
+            // Optionally delete the message containing the link
+            m.delete();
+        }
+    }
+    break;
 
     // Command to toggle Anti-Bug System ON or OFF
 case 'antibug':
@@ -1708,6 +1798,33 @@ case 'antibug':
         replygcxeon(`❌ Invalid option! Use:\n- *${prefix + command} on* to enable\n- *${prefix + command} off* to disable.`);
     }
     break
+    case 'autoleave':
+    if (!m.isGroup) return replygcxeon(mess.group);
+    if (!isAdmins && !isCreator) return replygcxeon(mess.admin);
+    if (!isBotAdmins) return replygcxeon(mess.botAdmin);
+    if (args.length < 1) return replygcxeon(`Example: ${prefix + command} on/off`);
+
+    // Read the current data from the file
+    const autoLeaveGroups = JSON.parse(fs.readFileSync('./database/autoleave.json', 'utf-8') || '[]');
+
+    if (q === 'on') {
+        if (autoLeaveGroups.includes(m.chat)) return replygcxeon("✅ Auto-Leave is already activated in this group.");
+        
+        // Add the group ID to the file
+        autoLeaveGroups.push(m.chat);
+        fs.writeFileSync('./database/autoleave.json', JSON.stringify(autoLeaveGroups, null, 2));
+        replygcxeon("✅ Auto-Leave has been activated in this group. Messages will be sent when members leave.");
+    } else if (q === 'off') {
+        if (!autoLeaveGroups.includes(m.chat)) return replygcxeon("❌ Auto-Leave is already disabled for this group.");
+        
+        // Remove the group ID from the file
+        const updatedGroups = autoLeaveGroups.filter(group => group !== m.chat);
+        fs.writeFileSync('./database/autoleave.json', JSON.stringify(updatedGroups, null, 2));
+        replygcxeon("✅ Auto-Leave has been disabled for this group.");
+    } else {
+        replygcxeon(`❌ Invalid option! Use:\n- *${prefix + command} on* to enable\n- *${prefix + command} off* to disable.`);
+    }
+    break;
 case 'time':
     if (!q.trim()) {
         return replygcxeon('⚠️ Please provide a city or location to check the current time. Useage: time Nigeria');
@@ -6351,9 +6468,12 @@ ${readmore}
 ┣ ◁️⚡💥 𝐞𝐝𝐢𝐭𝐢𝐧𝐟𝐨
 ┣ ◁️⚡💥 𝐥𝐢𝐧𝐤𝐠𝐜
 ┣ ◁️⚡💥 𝐫𝐞𝐦𝐨𝐯𝐞
+┣ ◁️⚡💥 𝐫𝐞𝐦𝐨𝐯𝐞𝐚𝐥𝐥
 ┣ ◁️⚡💥 𝐩𝐫𝐨𝐦𝐨𝐭𝐞𝐚𝐥𝐥
 ┣ ◁️⚡💥 𝐝𝐞𝐦𝐨𝐭𝐞𝐚𝐥𝐥
 ┣ ◁️⚡💥 𝐥𝐢𝐬𝐭𝐨𝐧𝐥𝐢𝐧𝐞
+┣ ◁️⚡💥 𝐚𝐮𝐭𝐨𝐰𝐞𝐥𝐜𝐨𝐦𝐞
+┣ ◁️⚡💥 𝐚𝐮𝐭𝐨𝐥𝐞𝐚𝐯𝐞
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ 𝐌𝐀𝐈𝐍 𝐌𝐄𝐍𝐔
