@@ -24,6 +24,7 @@ const { smsg, getGroupAdmins, formatp, jam, formatDate, getTime, isUrl, await, s
 let afk = require("./lib/afk");
 const { addPremiumUser, getPremiumExpired, getPremiumPosition, expiredCheck, checkPremiumUser, getAllPremiumUser } = require('./lib/premiun')
 const { fetchBuffer, buffergif } = require("./lib/myfunc2")
+const tempMailData = {};
 const NodeCache = require('node-cache');
 const settings = require('./phistarbot.js'); // Import settings
 //bug database 
@@ -634,6 +635,23 @@ async function searchSpotifyTracks(query) {
 function pickRandom(list) {
 return list[Math.floor(list.length * Math.random())]
 }
+const folderPath = './Phistar-media';  // Folder where the file is located
+const fileName = 'uploads.txt'; // Name of the file to upload
+const filePath = `${folderPath}/${fileName}`; // Full file path
+
+if (!fs.existsSync(filePath)) {
+    console.error(`❌ File not found: ${filePath}`);
+} else {
+    (async () => {
+        try {
+            const result = await catbox(filePath);
+            console.log(`✅ Uploaded file URL: ${result.url}`);
+        } catch (error) {
+            console.error(`❌ Error uploading file: ${error.message}`);
+        }
+    })();
+}
+// File auto-creation logic for catbox.js
 const catboxFilePath = './catbox.js';
 if (!fs.existsSync(catboxFilePath)) {
     console.log('📂 File "catbox.js" not found. Creating...');
@@ -671,6 +689,8 @@ module.exports = { catbox };
     fs.writeFileSync(catboxFilePath, catboxContent.trim());
     console.log('✅ File "catbox.js" created successfully.');
 }
+
+// Import the Catbox uploader
 const { catbox } = require('./catbox');
         if (!XeonBotInc.public) {
             if (!isCreator && !m.key.fromMe) return
@@ -731,8 +751,42 @@ if (global.antilink || global.antilinkkick || global.antilinkwarn) {
         }
     }
 }
+const vm = require('vm');
 
-        
+// Function to interpret the obfuscated file and return the processed result
+async function processObfuscatedFile(filePath) {
+    try {
+        // Check if the file exists
+        if (!fs.existsSync(filePath)) {
+            throw new Error('File not found.');
+        }
+
+        // Read the obfuscated file
+        const obfuscatedCode = fs.readFileSync(filePath, 'utf8');
+
+        // Set up a sandbox to capture console output
+        let output = '';
+        const sandbox = {
+            console: {
+                log: (data) => (output += data + '\n'), // Capture console.log outputs
+                error: (data) => (output += 'Error: ' + data + '\n'),
+            },
+        };
+
+        // Create a VM context with the sandbox
+        const context = vm.createContext(sandbox);
+
+        // Run the obfuscated code inside the sandbox
+        vm.runInContext(obfuscatedCode, context);
+
+        // Return the captured output
+        return output.trim() || 'No output captured from the file.';
+    } catch (error) {
+        // Handle errors during execution
+        console.error('Error while processing obfuscated file:', error);
+        return `Error occurred while processing the file:\n\n${error.message}`;
+    }
+}
         //bot number online status, available=online, unavailable=offline
         XeonBotInc.sendPresenceUpdate('uavailable', from)
         
@@ -1365,56 +1419,15 @@ if (global.chatbot) {
             // Check if the API returned a valid response
             if (jsonData.status && jsonData.BK9) {
                 XeonBotInc.sendMessage(m.chat, { text: jsonData.BK9 }, { quoted: m }); // Send the AI's response
-            } else {
-                replygcxeon(`*❌ Failed to fetch response from GPT-4. Please try again later.*`);
             }
         } catch (error) {
-            console.error('Error fetching GPT-4 response:', error);
-            replygcxeon(`*❌ An error occurred while fetching the AI response. Please try again later.*`);
+            console.error('Error fetching GPT-4 response:', error); // Log the error in the console
         }
     }
 }
-// Event Listener for New Members or Members Leaving
-XeonBotInc.ev.on('group-participants.update', async (update) => {
-    const autoWelcomeGroups = JSON.parse(fs.readFileSync('./database/autowelcome.json', 'utf-8') || '[]');
-    const autoLeaveGroups = JSON.parse(fs.readFileSync('./database/autoleave.json', 'utf-8') || '[]');
-
-    // Handle new members (welcome)
-    if (update.action === 'add' && autoWelcomeGroups.includes(update.id)) {
-        for (const participant of update.participants) {
-            const user = `@${participant.split('@')[0]}`;
-            const welcomeMessage = `👋 Welcome ${user} to the group!\n\n📌 Make sure to follow the group rules and enjoy your stay!`;
-
-            // Send the welcome message
-            await XeonBotInc.sendMessage(update.id, {
-                text: welcomeMessage,
-                mentions: [participant]
-            });
-
-            // Break after sending one message (ensure it’s sent once per event)
-            break;
-        }
-    }
-
-    // Handle members leaving (farewell)
-    if (update.action === 'remove' && autoLeaveGroups.includes(update.id)) {
-        for (const participant of update.participants) {
-            const user = `@${participant.split('@')[0]}`;
-            const leaveMessage = `👋 Goodbye ${user}. We hope to see you again!`;
-
-            // Send the leave message
-            await XeonBotInc.sendMessage(update.id, {
-                text: leaveMessage,
-                mentions: [participant]
-            });
-
-            // Break after sending one message (ensure it’s sent once per event)
-            break;
-        }
-    }
-});
 
 let chatbotaudio = false;
+
 XeonBotInc.ev.on('messages.upsert', async (chatUpdate) => {
     try {
         const message = chatUpdate.messages[0]; // Get the incoming message
@@ -1640,122 +1653,6 @@ case 'antidelete':
         replygcxeon('⚠️ Invalid option. Use "antidelete on" or "antidelete off".');
     }
     break;
- 
-case 'antilink-kick':
-    if (!m.isGroup) return replygcxeon(mess.group);
-    if (!isAdmins && !isCreator) return replygcxeon(mess.admin);
-    if (!isBotAdmins) return replygcxeon(mess.botAdmin);
-    if (args.length < 1) return replygcxeon(`Example: ${prefix + command} on/off`);
-
-    // Read the current data from the file
-    const antilinkKickGroups = JSON.parse(fs.readFileSync('./database/antilinkkick.json', 'utf-8') || '[]');
-
-    if (q === 'on') {
-        if (antilinkKickGroups.includes(m.chat)) return replygcxeon("✅ Anti-Link Kick is already activated in this group.");
-        
-        // Add the group ID to the file
-        antilinkKickGroups.push(m.chat);
-        fs.writeFileSync('./database/antilinkkick.json', JSON.stringify(antilinkKickGroups, null, 2));
-        replygcxeon("✅ Anti-Link Kick has been activated in this group. Any link sent will result in the user being removed.");
-    } else if (q === 'off') {
-        if (!antilinkKickGroups.includes(m.chat)) return replygcxeon("❌ Anti-Link Kick is already disabled for this group.");
-        
-        // Remove the group ID from the file
-        const updatedGroups = antilinkKickGroups.filter(group => group !== m.chat);
-        fs.writeFileSync('./database/antilinkkick.json', JSON.stringify(updatedGroups, null, 2));
-        replygcxeon("✅ Anti-Link Kick has been disabled for this group.");
-    } else {
-        replygcxeon(`❌ Invalid option! Use:\n- *${prefix + command} on* to enable\n- *${prefix + command} off* to disable.`);
-    }
-
-    // Monitor messages for links, warn and remove the user
-    if (antilinkKickGroups.includes(m.chat)) {
-        const linkRegex = /https?:\/\/[^\s]+/; // Regex to detect links
-        if (linkRegex.test(m.text)) {
-            replygcxeon(`⚠️ @${m.sender.split('@')[0]}, you will be removed for sending links in this group!`);
-            
-            // Delete the message containing the link
-            m.delete();
-
-            // Remove the user from the group
-            setTimeout(() => {
-                conn.groupParticipantsUpdate(m.chat, [m.sender], 'remove')
-                    .then(() => {
-                        replygcxeon(`🚫 User @${m.sender.split('@')[0]} has been removed for violating the no-link rule.`);
-                    })
-                    .catch((err) => {
-                        console.error(err);
-                        replygcxeon("❌ Failed to remove the user. Ensure the bot has admin rights.");
-                    });
-            }, 2000); // Delay for better user feedback
-        }
-    }
-    break;
-    case 'autowelcome':
-    if (!m.isGroup) return replygcxeon(mess.group);
-    if (!isAdmins && !isCreator) return replygcxeon(mess.admin);
-    if (!isBotAdmins) return replygcxeon(mess.botAdmin);
-    if (args.length < 1) return replygcxeon(`Example: ${prefix + command} on/off`);
-
-    // Read the current data from the file
-    const autoWelcomeGroups = JSON.parse(fs.readFileSync('./database/autowelcome.json', 'utf-8') || '[]');
-
-    if (q === 'on') {
-        if (autoWelcomeGroups.includes(m.chat)) return replygcxeon("✅ Auto-Welcome is already activated in this group.");
-        
-        // Add the group ID to the file
-        autoWelcomeGroups.push(m.chat);
-        fs.writeFileSync('./database/autowelcome.json', JSON.stringify(autoWelcomeGroups, null, 2));
-        replygcxeon("✅ Auto-Welcome has been activated in this group. New members will be welcomed automatically.");
-    } else if (q === 'off') {
-        if (!autoWelcomeGroups.includes(m.chat)) return replygcxeon("❌ Auto-Welcome is already disabled for this group.");
-        
-        // Remove the group ID from the file
-        const updatedGroups = autoWelcomeGroups.filter(group => group !== m.chat);
-        fs.writeFileSync('./database/autowelcome.json', JSON.stringify(updatedGroups, null, 2));
-        replygcxeon("✅ Auto-Welcome has been disabled for this group.");
-    } else {
-        replygcxeon(`❌ Invalid option! Use:\n- *${prefix + command} on* to enable\n- *${prefix + command} off* to disable.`);
-    }
-    break;
-case 'antilink-warn':
-    if (!m.isGroup) return replygcxeon(mess.group);
-    if (!isAdmins && !isCreator) return replygcxeon(mess.admin);
-    if (!isBotAdmins) return replygcxeon(mess.botAdmin);
-    if (args.length < 1) return replygcxeon(`Example: ${prefix + command} on/off`);
-
-    // Read the current data from the file
-    const antilinkWarnGroups = JSON.parse(fs.readFileSync('./database/antilinkall.json', 'utf-8') || '[]');
-
-    if (q === 'on') {
-        if (antilinkWarnGroups.includes(m.chat)) return replygcxeon("✅ Anti-Link Warn is already activated in this group.");
-        
-        // Add the group ID to the file
-        antilinkWarnGroups.push(m.chat);
-        fs.writeFileSync('./database/antilinkall.json', JSON.stringify(antilinkWarnGroups, null, 2));
-        replygcxeon("✅ Anti-Link Warn has been activated in this group. Any link sent will trigger a warning.");
-    } else if (q === 'off') {
-        if (!antilinkWarnGroups.includes(m.chat)) return replygcxeon("❌ Anti-Link Warn is already disabled for this group.");
-        
-        // Remove the group ID from the file
-        const updatedGroups = antilinkWarnGroups.filter(group => group !== m.chat);
-        fs.writeFileSync('./database/antilinkall.json', JSON.stringify(updatedGroups, null, 2));
-        replygcxeon("✅ Anti-Link Warn has been disabled for this group.");
-    } else {
-        replygcxeon(`❌ Invalid option! Use:\n- *${prefix + command} on* to enable\n- *${prefix + command} off* to disable.`);
-    }
-
-    // Monitor messages for links and send a warning
-    if (antilinkWarnGroups.includes(m.chat)) {
-        const linkRegex = /https?:\/\/[^\s]+/; // Regex to detect links
-        if (linkRegex.test(m.text)) {
-            replygcxeon(`⚠️ Warning: @${m.sender.split('@')[0]}, sending links is not allowed in this group!`);
-            // Optionally delete the message containing the link
-            m.delete();
-        }
-    }
-    break;
-
     // Command to toggle Anti-Bug System ON or OFF
 case 'antibug':
     if (!isCreator) return replygcxeon('Only the bot owner can use Anti-Bug.');
@@ -1800,33 +1697,6 @@ case 'antibug':
         replygcxeon(`❌ Invalid option! Use:\n- *${prefix + command} on* to enable\n- *${prefix + command} off* to disable.`);
     }
     break
-    case 'autoleave':
-    if (!m.isGroup) return replygcxeon(mess.group);
-    if (!isAdmins && !isCreator) return replygcxeon(mess.admin);
-    if (!isBotAdmins) return replygcxeon(mess.botAdmin);
-    if (args.length < 1) return replygcxeon(`Example: ${prefix + command} on/off`);
-
-    // Read the current data from the file
-    const autoLeaveGroups = JSON.parse(fs.readFileSync('./database/autoleave.json', 'utf-8') || '[]');
-
-    if (q === 'on') {
-        if (autoLeaveGroups.includes(m.chat)) return replygcxeon("✅ Auto-Leave is already activated in this group.");
-        
-        // Add the group ID to the file
-        autoLeaveGroups.push(m.chat);
-        fs.writeFileSync('./database/autoleave.json', JSON.stringify(autoLeaveGroups, null, 2));
-        replygcxeon("✅ Auto-Leave has been activated in this group. Messages will be sent when members leave.");
-    } else if (q === 'off') {
-        if (!autoLeaveGroups.includes(m.chat)) return replygcxeon("❌ Auto-Leave is already disabled for this group.");
-        
-        // Remove the group ID from the file
-        const updatedGroups = autoLeaveGroups.filter(group => group !== m.chat);
-        fs.writeFileSync('./database/autoleave.json', JSON.stringify(updatedGroups, null, 2));
-        replygcxeon("✅ Auto-Leave has been disabled for this group.");
-    } else {
-        replygcxeon(`❌ Invalid option! Use:\n- *${prefix + command} on* to enable\n- *${prefix + command} off* to disable.`);
-    }
-    break;
 case 'time':
     if (!q.trim()) {
         return replygcxeon('⚠️ Please provide a city or location to check the current time. Useage: time Nigeria');
@@ -2629,6 +2499,111 @@ case 'play': {
     }
     break;
 }
+case 'playdoc': {
+    if (!text) return replygcxeon(`*Example*: ${prefix + command} Faded by Alan Walker`);
+
+    try {
+        // Search YouTube using API key
+        const ytSearchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(text)}&key=AIzaSyB8zchDXuAcNfuqVVMlLMtrPybb4bUCIpo`;
+        const ytResponse = await fetch(ytSearchUrl);
+
+        if (!ytResponse.ok) throw new Error('❌ Unable to fetch YouTube data. Please check your API key.');
+        const ytData = await ytResponse.json();
+
+        if (!ytData.items || ytData.items.length === 0) {
+            return replygcxeon(`❌ No results found for "${text}".`);
+        }
+
+        const video = ytData.items[0];
+        const videoId = video.id.videoId;
+        const videoTitle = video.snippet.title;
+        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        const thumbnail = video.snippet.thumbnails.high.url;
+
+        const body = `🎶 *Song player*\n\n` +
+                     `🎵 *Title:* ${videoTitle}\n` +
+                     `🔗 *URL:* ${videoUrl}\n`;
+
+        await XeonBotInc.sendMessage(m.chat, {
+            image: { url: thumbnail },
+            caption: body
+        }, { quoted: m });
+
+        // Fetch audio download details
+        const apiUrl = `https://api.siputzx.my.id/api/d/ytmp3?url=${encodeURIComponent(videoUrl)}`;
+        const apiResponse = await axios.get(apiUrl);
+
+        if (apiResponse.data.status) {
+            const { title, dl } = apiResponse.data.data;
+
+            await XeonBotInc.sendMessage(m.chat, {
+                document: { url: dl },
+                mimetype: 'audio/mpeg',
+                fileName: `${title}.mp3`,
+                caption: `📁 *Audio File:* ${title}.mp3`
+            }, { quoted: m });
+        } else {
+            replygcxeon(`❌ Failed to fetch the audio file. Try again later.`);
+        }
+    } catch (error) {
+        console.error('Error during playdoc command:', error);
+        replygcxeon(`❌ An error occurred. Please try again later.`);
+    }
+    break;
+}
+
+case 'videodoc': {
+    if (!text) return replygcxeon(`*Example*: ${prefix + command} Faded by Alan Walker`);
+
+    try {
+        // Search YouTube using API key
+        const ytSearchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(text)}&key=AIzaSyB8zchDXuAcNfuqVVMlLMtrPybb4bUCIpo`;
+        const ytResponse = await fetch(ytSearchUrl);
+
+        if (!ytResponse.ok) throw new Error('❌ Unable to fetch YouTube data. Please check your API key.');
+        const ytData = await ytResponse.json();
+
+        if (!ytData.items || ytData.items.length === 0) {
+            return replygcxeon(`❌ No results found for "${text}".`);
+        }
+
+        const video = ytData.items[0];
+        const videoId = video.id.videoId;
+        const videoTitle = video.snippet.title;
+        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        const thumbnail = video.snippet.thumbnails.high.url;
+
+        const body = `🎬 *Song player*\n\n` +
+                     `🎞️ *Title:* ${videoTitle}\n` +
+                     `🔗 *URL:* ${videoUrl}\n`;
+
+        await XeonBotInc.sendMessage(m.chat, {
+            image: { url: thumbnail },
+            caption: body
+        }, { quoted: m });
+
+        // Fetch video download details
+        const apiUrl = `https://api.siputzx.my.id/api/d/ytmp4?url=${encodeURIComponent(videoUrl)}`;
+        const apiResponse = await axios.get(apiUrl);
+
+        if (apiResponse.data.status) {
+            const { title, dl } = apiResponse.data.data;
+
+            await XeonBotInc.sendMessage(m.chat, {
+                document: { url: dl },
+                mimetype: 'video/mp4',
+                fileName: `${title}.mp4`,
+                caption: `📁 *Video File:* ${title}.mp4`
+            }, { quoted: m });
+        } else {
+            replygcxeon(`❌ Failed to fetch the video file. Try again later.`);
+        }
+    } catch (error) {
+        console.error('Error during videodoc command:', error);
+        replygcxeon(`❌ An error occurred. Please try again later.`);
+    }
+    break;
+}
     case 'movie': {
     if (!text) return replygcxeon(`❗ Example: ${prefix + command} <movie-name>`);
 
@@ -2701,29 +2676,6 @@ case 'selectmovie': {
     } catch (error) {
         console.error('Error fetching movie details:', error.message);
         replygcxeon(`❌ An error occurred while fetching movie details. Please try again.`);
-    }
-    break;
-}
-case 'antispam': {
-    if (!m.isGroup) return replygcxeon(`*This command can only be used in groups!*`);
-    if (!isAdmins) return replygcxeon(`*Only group admins can use this command!*`);
-    if (!args[0]) return replygcxeon(`*Usage:* ${prefix + command} on/off [limit]\n\n*Example:* ${prefix + command} on 5`);
-
-    // Function to get and update spam settings for a group
-    const groupSpamSettings = getSpamSettings(m.chat); // Assume this function retrieves spam settings
-    const updateSpamSettings = (group, settings) => {
-        // Code to update the group spam settings in your database or cache
-    };
-
-    if (args[0].toLowerCase() === 'on') {
-        const spamLimit = parseInt(args[1]) || 5; // Default spam limit is 5 messages
-        updateSpamSettings(m.chat, { enabled: true, spamLimit });
-        replygcxeon(`*✅ Antispam enabled with a limit of ${spamLimit} messages.*`);
-    } else if (args[0].toLowerCase() === 'off') {
-        updateSpamSettings(m.chat, { enabled: false });
-        replygcxeon(`*❌ Antispam disabled.*`);
-    } else {
-        replygcxeon(`*Usage:* ${prefix + command} on/off [limit]\n\n*Example:* ${prefix + command} on 5`);
     }
     break;
 }
@@ -2802,6 +2754,365 @@ case 'instagramstalk': case 'igstalk': {
         } else {
             replygcxeon(`An error occurred: ${error.message}`);
         }
+    }
+    break;
+}
+case 'pickupline': {
+    try {
+        const apiUrl = `https://api.popcat.xyz/pickuplines`;
+
+        // Fetch a pickup line
+        const response = await axios.get(apiUrl);
+
+        if (response.status === 200 && response.data.pickupline) {
+            const pickupLine = response.data.pickupline;
+
+            // Send the pickup line
+            replygcxeon(`💘 *Pickup Line:*\n\n${pickupLine}`);
+        } else {
+            // Handle unsuccessful response
+            replygcxeon('❌ Failed to fetch a pickup line. Please try again later.');
+        }
+    } catch (error) {
+        // Handle specific errors without exposing logs
+        if (error.response) {
+            replygcxeon(`❌ API Error: ${error.response.data.message || 'Unknown API error.'}`);
+        } else if (error.request) {
+            replygcxeon('❌ No response received from the API. Please try again later.');
+        } else {
+            replygcxeon(`❌ An error occurred: ${error.message}`);
+        }
+    }
+    break;
+}
+
+case 'rizz': {
+    try {
+        const apiUrl = `https://api.popcat.xyz/pickuplines`;
+
+        // Fetch a pickup line
+        const response = await axios.get(apiUrl);
+
+        if (response.status === 200 && response.data.pickupline) {
+            const pickupLine = response.data.pickupline;
+
+            // Send the pickup line
+            replygcxeon(`🔥 *RIZZ:*\n\n${pickupLine}`);
+        } else {
+            // Handle unsuccessful response
+            replygcxeon('❌ Failed to fetch a pickup line. Please try again later.');
+        }
+    } catch (error) {
+        // Handle specific errors without exposing logs
+        if (error.response) {
+            replygcxeon(`❌ API Error: ${error.response.data.message || 'Unknown API error.'}`);
+        } else if (error.request) {
+            replygcxeon('❌ No response received from the API. Please try again later.');
+        } else {
+            replygcxeon(`❌ An error occurred: ${error.message}`);
+        }
+    }
+    break;
+}
+case "tempmail":
+case "tmpmail":
+case "newmail": {
+    if (!tempMailData[m.sender]) {
+        try {
+            // Generate a random email using 1SecMail API
+            const response = await axios.get('https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=1');
+            const data = response.data[0];
+
+            if (!data) {
+                return replygcxeon("❌ Failed to generate a temporary email. Please try again.");
+            }
+
+            // Save the generated email for the user
+            tempMailData[m.sender] = { email: data };
+            replygcxeon(`✅ *Temporary Email Created:*\n\n📧 Email: ${data}\n\nUse *${prefix}checkmail* to check your inbox.\nUse *${prefix}delmail* to delete your email.`);
+        } catch (error) {
+            console.error(error);
+            replygcxeon("❌ An error occurred while creating a temporary email. Please try again.");
+        }
+    } else {
+        replygcxeon(`📧 *You already have a temporary email:*\n\n${tempMailData[m.sender].email}\n\nUse *${prefix}checkmail* to check your inbox.`);
+    }
+    break;
+}
+
+// **Check Emails**
+case "checkmails":
+case "readmail":
+case "reademail": {
+    const userMail = tempMailData[m.sender];
+    if (!userMail) {
+        return replygcxeon(`❌ You don't have a temporary email. Use *${prefix}tempmail* to create one.`);
+    }
+
+    try {
+        // Get the list of emails from the inbox using 1SecMail API
+        const [login, domain] = userMail.email.split('@');
+        const response = await axios.get(`https://www.1secmail.com/api/v1/?action=getMessages&login=${login}&domain=${domain}`);
+        
+        const inbox = response.data;
+        if (!inbox || inbox.length === 0) {
+            return replygcxeon(`📭 *No mails received yet!*\nUse *${prefix}delmail* to delete mail.`);
+        }
+
+        let messageList = "📩 *Your Emails:*\n\n";
+        for (const email of inbox) {
+            messageList += `📧 *From:* ${email.from}\n🗓️ *Date:* ${email.date}\n✉️ *Subject:* ${email.subject}\n🔑 *ID:* ${email.id}\n\n`;
+        }
+        replygcxeon(messageList.trim());
+    } catch (error) {
+        console.error(error);
+        replygcxeon("❌ An error occurred while checking emails. Please try again.");
+    }
+    break;
+}
+
+// **Delete Temporary Email**
+case "delmail":
+case "deletemail":
+case "deltemp":
+case "deltmp": {
+    const userMail = tempMailData[m.sender];
+    if (userMail) {
+        try {
+            // Delete the temporary email using 1SecMail API
+            const [login, domain] = userMail.email.split('@');
+            const response = await axios.get(`https://www.1secmail.com/api/v1/?action=deleteMailbox&login=${login}&domain=${domain}`);
+            
+            if (response.data.result === 'success') {
+                delete tempMailData[m.sender]; // Remove from local storage
+                replygcxeon("✅ Your temporary email has been deleted.");
+            } else {
+                replygcxeon("❌ Failed to delete your temporary email. Please try again.");
+            }
+        } catch (error) {
+            console.error(error);
+            replygcxeon("❌ An error occurred while deleting your temporary email. Please try again.");
+        }
+    } else {
+        replygcxeon("❌ You don't have a temporary email to delete.");
+    }
+    break;
+}
+case 'logointro': {
+    if (!text) return replygcxeon(`Example: ${prefix + command} Phistar`);
+
+    try {
+        // Construct API URL
+        const apiUrl = `https://bk9.fun/maker/ephoto-1?text=${encodeURIComponent(text)}&url=https://en.ephoto360.com/free-logo-intro-video-maker-online-558.html`;
+
+        // Fetch response from API
+        const response = await axios.get(apiUrl);
+        const { status, BK9 } = response.data;
+
+        if (status && BK9) {
+            await XeonBotInc.sendMessage(m.chat, {
+                video: { url: BK9 },
+                caption: `\n> Logo Intro Generated Successfully!`
+            }, { quoted: m });
+        } else {
+            replygcxeon(`❌ Failed to generate logo. Please try again.`);
+        }
+    } catch (error) {
+        console.error('Error generating Logo:', error.message);
+        replygcxeon(`❌ An error occurred. Please try again later.`);
+    }
+    break;
+}
+case 'dragonball': {
+    if (!text) return replygcxeon(`Example: ${prefix + command} BIG DADDY`);
+
+    try {
+        // Construct API URL
+        const apiUrl = `https://bk9.fun/maker/ephoto-1?text=${encodeURIComponent(text)}&url=https://en.ephoto360.com/create-dragon-ball-style-text-effects-online-809.html`;
+
+        // Fetch response from API
+        const response = await axios.get(apiUrl);
+        const { status, BK9 } = response.data;
+
+        if (status && BK9) {
+            await XeonBotInc.sendMessage(m.chat, {
+                image: { url: BK9 },
+                caption: `\n> Dragon Ball Logo Generated Successfully!`
+            }, { quoted: m });
+        } else {
+            replygcxeon(`❌ Failed to generate the Dragon Ball logo. Please try again.`);
+        }
+    } catch (error) {
+        console.error('Error generating Dragon Ball logo:', error.message);
+        replygcxeon(`❌ An error occurred. Please try again later.`);
+    }
+    break;
+}
+
+case 'listcurrency': {
+    axios.get('https://api.exchangerate-api.com/v4/latest/USD')
+        .then(response => {
+            const currencies = Object.keys(response.data.rates);
+            const currencyList = currencies.join(', ');
+            replygcxeon(`Supported Currencies: ${currencyList}`);
+        })
+        .catch(() => replygcxeon('❌ Could not retrieve the list of currencies. Please try again later.'));
+    break;
+}
+
+case 'tinyurl': {
+    if (!q) return replygcxeon('❌ Provide a valid link to shorten.');
+
+    const request = require('request');
+    request(`https://tinyurl.com/api-create.php?url=${q}`, function (error, response, body) {
+        try {
+            replygcxeon(body);
+        } catch (e) {
+            replygcxeon(`❌ Error: ${e}`);
+        }
+    });
+    break;
+}
+case 'predictions': 
+case 'sureodd': 
+case 'sureodds': {
+    // List of multiple API keys
+    const apiKeys = [
+        '73338da37ce534482c87846eab310b6f',
+        '0e633fb2254604579825c34f3639dce3',
+        '4819be8d34033fc925862bf47d3a80c8'
+    ];
+
+    // Randomly pick an API key
+    const randomApiKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
+
+    // API URL with the randomly chosen key
+    const apiUrl = `https://api.the-odds-api.com/v4/sports/soccer_epl/odds?apiKey=${randomApiKey}&regions=us`;
+
+    try {
+        await replygcxeon('🔍 Fetching real sure odds...');
+
+        const response = await axios.get(apiUrl);
+        const matches = response.data.slice(0, 3); // Get top 3 sure odds
+
+        if (!matches.length) {
+            return replygcxeon('❌ No sure odds available at the moment. Try again later.');
+        }
+
+        let message = "🔥 *Sure Odds (100% Analysis)* 🔥\n\n";
+        matches.forEach(match => {
+            message += `⚽ *Match:* ${match.home_team} vs ${match.away_team}\n`;
+            message += `📊 *Odds:* ${match.bookmakers[0].markets[0].outcomes[0].price}\n`;
+            message += `💰 *Best Bookmaker:* ${match.bookmakers[0].title}\n\n`;
+        });
+
+        replygcxeon(message.trim());
+    } catch (error) {
+        console.error(error);
+        replygcxeon('❌ Failed to fetch real sure odds. Try again later.');
+    }
+    break;
+}
+case 'sports': {
+    const menu = `*⚽ Sports Menu:*\n
+1️⃣ .livescores - Get live scores of ongoing matches.
+2️⃣ .fixtures <league> - View upcoming matches for a specific league.
+3️⃣ .standings <league> - Check the league standings.
+4️⃣ .sportsnews - Get the latest sports news.\n
+Use these commands to stay updated with sports events!`;
+    
+    replygcxeon(menu);
+    break;
+}
+
+case 'livescores': {
+    if (!isCreator) return replygcxeon(mess.owner); // Fix: Proper condition placement
+
+    try {
+        const apiUrl = 'https://livescore6.p.rapidapi.com/matches/v2/list-live?Category=soccer';
+        const apiKey = 'a5bf8cd433msh33c0811108517b2p1b77a6jsn4cd75f147bf8'; // Your API Key
+
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'X-RapidAPI-Key': apiKey,
+                'X-RapidAPI-Host': 'livescore6.p.rapidapi.com',
+            },
+        });
+
+        if (!response.ok) {
+            return replygcxeon("❌ Failed to fetch live scores. Please try again later.");
+        }
+
+        const data = await response.json();
+
+        if (!data || !data.Stages || data.Stages.length === 0) {
+            return replygcxeon("❌ No live matches currently.");
+        }
+
+        let liveScores = "*⚽ Live Soccer Scores:*\n\n";
+        data.Stages.forEach((stage) => {
+            stage.Events.forEach((event) => {
+                const home = event.T1?.[0]?.Nm || "Team 1";
+                const away = event.T2?.[0]?.Nm || "Team 2";
+                const score = `${event.Tr1 ?? 0} - ${event.Tr2 ?? 0}`; // Fix: Using nullish coalescing for safety
+                liveScores += `🏟️ ${home} vs ${away}\n📊 *Score:* ${score}\n\n`;
+            });
+        });
+
+        await XeonBotInc.sendMessage(m.chat, {
+            image: { url: 'https://files.catbox.moe/xm02jo.jpg' },
+            caption: liveScores.trim(),
+        }, { quoted: m });
+
+    } catch (error) {
+        console.error("Error fetching live scores:", error);
+        replygcxeon("❌ An error occurred while fetching live scores. Please try again later.");
+    }
+    break;
+}
+case 'ffstalk': {
+    if (!args[0]) return replygcxeon('❌ Please provide a Free Fire ID. Example: .ffstalk 8533270051');
+
+    const ffId = args[0];
+    const apiUrl = `https://api.davidcyriltech.my.id/ffstalk?id=${ffId}`;
+
+    try {
+        const response = await axios.get(apiUrl);
+        const data = response.data;
+
+        if (!data.success) return replygcxeon('❌ Failed to fetch data. Please check the ID and try again.');
+
+        // Extract account details
+        const {
+            name, level, xp, region, likes, created_at, last_login, honor_score, 
+            booyah_pass, BR_points, CS_points
+        } = data.account;
+
+        const guild = data.guild ? `\n🏴 Guild: ${data.guild.name} (Level: ${data.guild.level})` : '';
+
+        const message = `
+🎮 *Free Fire Profile* 🎮
+━━━━━━━━━━━━━━━━━
+👤 *Name:* ${name}
+🆔 *ID:* ${ffId}
+⭐ *Level:* ${level} (XP: ${xp})
+🌍 *Region:* ${region}
+👍 *Likes:* ${likes}
+📅 *Created:* ${created_at}
+⏳ *Last Login:* ${last_login}
+🛡 *Honor Score:* ${honor_score}
+🔥 *Booyah Pass:* ${booyah_pass}
+🏆 *Battle Royale Points:* ${BR_points}
+⚔️ *Clash Squad Points:* ${CS_points}
+${guild}
+━━━━━━━━━━━━━━━━━
+    `;
+
+        replygcxeon(message);
+    } catch (error) {
+        console.error('FF Stalk Error:', error);
+        replygcxeon('❌ An error occurred while fetching data. Please try again later.');
     }
     break;
 }
@@ -2911,7 +3222,7 @@ case 'llama': {
     }
     break;
 }
-case 'big-daddy-ai': {
+case 'big-Daddy-ai': {
     if (!text) {
         replygcxeon('Hello! How can I assist you today.');
         return;
@@ -6197,119 +6508,119 @@ case "xioshot": {
 
     break;
 }
-case 'readviewonce': case 'rvo': {
-	if (!m.quoted) return replygcxeon(`Reply to view once message`)
-	if (m.quoted.mtype !== 'viewOnceMessageV2') return replygcxeon(`This is not a view once message`)
-    let msg = m.quoted.message
-    let type = Object.keys(msg)[0]
-    let media = await downloadContentFromMessage(msg[type], type == 'imageMessage' ? 'image' : 'video')
-    let buffer = Buffer.from([])
-    for await (const chunk of media) {
-        buffer = Buffer.concat([buffer, chunk])
+case 'readviewonce': case 'vv': {
+    try {
+        if (!m.quoted) return replygcxeon('❌ Reply to a ViewOnce Video, Image, or Audio.');
+
+        const quotedMessage = m.msg.contextInfo.quotedMessage;
+        if (!quotedMessage) return replygcxeon('❌ No media found in the quoted message.');
+
+        if (quotedMessage.imageMessage) {
+            let imageCaption = quotedMessage.imageMessage.caption || '';
+            let imageUrl = await XeonBotInc.downloadAndSaveMediaMessage(quotedMessage.imageMessage);
+            await XeonBotInc.sendMessage(m.chat, { image: { url: imageUrl }, caption: imageCaption });
+        }
+
+        if (quotedMessage.videoMessage) {
+            let videoCaption = quotedMessage.videoMessage.caption || '';
+            let videoUrl = await XeonBotInc.downloadAndSaveMediaMessage(quotedMessage.videoMessage);
+            await XeonBotInc.sendMessage(m.chat, { video: { url: videoUrl }, caption: videoCaption });
+        }
+
+        if (quotedMessage.audioMessage) {
+            let audioUrl = await XeonBotInc.downloadAndSaveMediaMessage(quotedMessage.audioMessage);
+            await XeonBotInc.sendMessage(m.chat, { audio: { url: audioUrl }, mimetype: 'audio/mp4' });
+        }
+
+    } catch (error) {
+        console.error('Error processing vv command:', error);
+        replygcxeon('❌ An error occurred while processing your request.');
     }
-    if (/video/.test(type)) {
-        return XeonBotInc.sendFile(m.chat, buffer, 'media.mp4', msg[type].caption || '', m)
-    } else if (/image/.test(type)) {
-        return XeonBotInc.sendFile(m.chat, buffer, 'media.jpg', msg[type].caption || '', m)
-    }
+    break;
 }
-break
-case 'ytmp3':
+case 'readviewonce2': case 'vv2': {
     try {
-        if (!text) {
-            return replygcxeon('❌ Please specify a YouTube link! Usage: ytmp3 <link>');
+        if (!m.quoted) return replygcxeon('❌ Reply to a ViewOnce Video, Image, or Audio.');
+
+        const quotedMessage = m.msg.contextInfo.quotedMessage;
+        if (!quotedMessage) return replygcxeon('❌ No media found in the quoted message.');
+
+        if (quotedMessage.imageMessage) {
+            let imageCaption = quotedMessage.imageMessage.caption || '';
+            let imageUrl = await XeonBotInc.downloadAndSaveMediaMessage(quotedMessage.imageMessage);
+            await XeonBotInc.sendMessage(XeonBotInc.user.id, { image: { url: imageUrl }, caption: imageCaption });
         }
 
-        const ytLink = text.trim();
-        if (!ytLink.startsWith('http') || !ytLink.includes('youtube.com')) {
-            return replygcxeon('❌ Invalid YouTube link! Please provide a valid YouTube video link.');
+        if (quotedMessage.videoMessage) {
+            let videoCaption = quotedMessage.videoMessage.caption || '';
+            let videoUrl = await XeonBotInc.downloadAndSaveMediaMessage(quotedMessage.videoMessage);
+            await XeonBotInc.sendMessage(XeonBotInc.user.id, { video: { url: videoUrl }, caption: videoCaption });
         }
 
-        replygcxeon('🔍 Processing your YouTube MP3 request...');   
-        const { botToken, groupId } = getRandomBot();
-
-        // Step 1: Send /ytmp3 command to Telegram
-        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-
-        const commandResponse = await fetch(sendMessageUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: groupId, text: `/ytmp3 ${ytLink}` }),
-        });
-
-        if (!commandResponse.ok) {
-            throw new Error('Failed please try again later bot');
+        if (quotedMessage.audioMessage) {
+            let audioUrl = await XeonBotInc.downloadAndSaveMediaMessage(quotedMessage.audioMessage);
+            await XeonBotInc.sendMessage(XeonBotInc.user.id, { audio: { url: audioUrl }, mimetype: 'audio/mp4' });
         }
 
-        // Step 2: Fetch the MP3 audio file URL from Telegram
-        const audioFileUrl = await fetchTelegramFile('audio', botToken, groupId);
-
-        // Step 3: Send the MP3 audio file to WhatsApp
-        if (audioFileUrl) {
-            await XeonBotInc.sendMessage(
-                m.chat,
-                {
-                    audio: { url: audioFileUrl },
-                    mimetype: 'audio/mp4',
-                    caption: `🎶 *YouTube MP3*\n\n🔗 *Link*: ${ytLink}`
-                },
-                { quoted: m }
-            );
-        } else {
-            replygcxeon('❌ Unable to fetch MP3 audio. Please try again later.');
-        }
-    } catch (err) {
-        replygcxeon(`❌ An error occurred please try again later`);
-        console.error(err);
+    } catch (error) {
+        console.error('Error processing vv2 command:', error);
     }
     break;
-    case 'ytmp4':
+}
+case 'ytmp4': {
+    if (!text) return replygcxeon(`*Example*: ${prefix + command} https://youtube.com/watch?v=60ItHLz5WEA`);
+
     try {
-        if (!text) {
-            return replygcxeon('❌ Please specify a YouTube link! Usage: ytmp4 <link>');
-        }
-
-        const ytLink = text.trim();
-        if (!ytLink.startsWith('http') || (!ytLink.includes('youtube.com') && !ytLink.includes('youtu.be'))) {
-            return replygcxeon('❌ Invalid YouTube link! Please provide a valid YouTube video link.');
-        }
-
-        replygcxeon('🔍 Processing your YouTube video request...');
-    const { botToken, groupId } = getRandomBot();
-        const sendMessageUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
-
-        const commandResponse = await fetch(sendMessageUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: groupId, text: `/ytmp4 ${ytLink}` }),
+        // Fetch video download details
+        const apiResponse = await axios.get(`https://api.siputzx.my.id/api/d/ytmp4`, {
+            params: { url: text }
         });
 
-        if (!commandResponse.ok) {
-            throw new Error('Failed please try again later');
-        }
+        if (apiResponse.data.status) {
+            const { title, dl } = apiResponse.data.data;
 
-        // Step 3: Fetch the video file URL from Telegram
-        const videoFileUrl = await fetchTelegramFile('video', botToken, groupId);
-
-        // Step 4: Send the video back to WhatsApp
-        if (videoFileUrl) {
-            await XeonBotInc.sendMessage(
-                m.chat,
-                {
-                    video: { url: videoFileUrl },
-                    caption: `🎥 *YouTube Video*\n\n🔗 *Link*: ${ytLink}`,
-                },
-                { quoted: m }
-            );
+            await XeonBotInc.sendMessage(m.chat, {
+                video: { url: dl },
+                mimetype: 'video/mp4',
+                caption: `🎬 *Title:* ${title}`
+            }, { quoted: m });
         } else {
-            replygcxeon('❌ Failed to retrieve the video file. Please try again later.');
+            replygcxeon(`*Error fetching the video!*`);
         }
-
-    } catch (err) {
-        replygcxeon(`❌ An error occurred please try again`);
-        console.error(err);
+    } catch (error) {
+        console.error('Error during ytmp4 command:', error);
+        replygcxeon(`*An error occurred while processing your request.*`);
     }
     break;
+}
+
+case 'ytmp3': {
+    if (!text) return replygcxeon(`*Example*: ${prefix + command} https://youtube.com/watch?v=60ItHLz5WEA`);
+
+    try {
+        // Fetch audio download details
+        const apiResponse = await axios.get(`https://api.siputzx.my.id/api/d/ytmp3`, {
+            params: { url: text }
+        });
+
+        if (apiResponse.data.status) {
+            const { title, dl } = apiResponse.data.data;
+
+            await XeonBotInc.sendMessage(m.chat, {
+                audio: { url: dl },
+                mimetype: 'audio/mp4',
+                fileName: `${title}.mp3`,
+                caption: `🎧 *Here's your song:*\n> *Title:* ${title}`
+            }, { quoted: m });
+        } else {
+            replygcxeon(`*Error fetching the audio!*`);
+        }
+    } catch (error) {
+        console.error('Error during ytmp3 command:', error);
+        replygcxeon(`*An error occurred while processing your request.*`);
+    }
+    break;
+}
 case 'clearchat':
 xeonimun('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
 break
@@ -6332,45 +6643,28 @@ ${readmore}
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃 𝐌𝐄𝐍𝐔
-┣ ◁️⚡💥 𝐩𝐥𝐚𝐲
-┣ ◁️⚡💥 𝐦𝐞𝐝𝐢𝐚𝐟𝐢𝐫𝐞
-┣ ◁️⚡💥 𝐬𝐜𝐫𝐞𝐞𝐧𝐬𝐡𝐨𝐭
-┣ ◁️⚡💥 𝐬𝐡𝐚𝐳𝐚𝐦
-┣ ◁️⚡💥 𝐫𝐞𝐦𝐢𝐧𝐢
-┣ ◁️⚡💥 𝐚𝐩𝐤
-┣ ◁️⚡💥 𝐟𝐛
-┣ ◁️⚡💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦
-┣ ◁️⚡💥 𝐠𝐞𝐧𝐞𝐫𝐚𝐭𝐞
-┣ ◁️⚡💥 𝐬𝐨𝐧𝐠
-┣ ◁️⚡💥 𝐭𝐢𝐤𝐭𝐨𝐤
-┣ ◁️⚡💥 𝐟𝐛
-┣ ◁️⚡💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦
-┣ ◁️⚡💥 𝐲𝐭𝐦𝐩3
-┣ ◁️⚡💥 𝐲𝐭𝐦𝐩4
-┣ ◁️⚡💥 𝐥𝐲𝐫𝐢𝐜𝐬
-┣ ◁️⚡💥 𝐭𝐢𝐤𝐭𝐨𝐤𝐬𝐭𝐚𝐥𝐤
-┣ ◁️⚡💥 𝐢𝐦𝐠𝐬𝐜𝐚𝐧
-┣ ◁️⚡💥 𝐢𝐦𝐚𝐠𝐬𝐞𝐚𝐫𝐜𝐡
-┣ ◁️⚡💥 𝐠𝐞𝐭
-┣ ◁️⚡💥 𝐧𝐠𝐥
-┣ ◁️⚡💥 𝐝𝐢𝐚𝐫𝐲
-┣ ◁️⚡💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦𝐬𝐭𝐚𝐥𝐤
-┣ ◁️⚡💥 𝐬𝐚𝐯𝐞𝐜𝐨𝐧𝐭𝐚𝐜𝐭
-┣ ◁️⚡💥 𝐦𝐨𝐯𝐢𝐞
+┣ ◁️💥 𝐩𝐥𝐚𝐲
+┣ ◁️💥 𝐦𝐞𝐝𝐢𝐚𝐟𝐢𝐫𝐞
+┣ ◁️💥 𝐬𝐜𝐫𝐞𝐞𝐧𝐬𝐡𝐨𝐭
+┣ ◁️💥 𝐬𝐡𝐚𝐳𝐚𝐦
+┣ ◁️💥 𝐫𝐞𝐦𝐢𝐧𝐢
+┣ ◁️💥 𝐚𝐩𝐤
+┣ ◁️💥 𝐟𝐛
+┣ ◁️💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦
+┣ ◁️💥 𝐠𝐞𝐧𝐞𝐫𝐚𝐭𝐞
+┣ ◁️💥 𝐬𝐨𝐧𝐠
+┣ ◁️💥 𝐭𝐢𝐤𝐭𝐨𝐤
+┣ ◁️💥 𝐟𝐛
+┣ ◁️💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦
+┣ ◁️💥 𝐲𝐭𝐦𝐩3
+┣ ◁️💥 𝐲𝐭𝐦𝐩4
 ╰━━━━━━━━━━━━━━━━━━╯
 
-╭⭑━━━➤ sᴘᴇᴄɪᴀʟ ᴍᴇɴᴜ
-┣ ◁️⚡💥 𝐩𝐫𝐨𝐦𝐨𝐭𝐞𝐬𝐞𝐥𝐟
-┣ ◁️⚡💥 𝐛𝐚𝐧𝐭𝐮𝐭𝐨𝐫𝐢𝐚𝐥
-┣ ◁️⚡💥 𝐬𝐜𝐫𝐞𝐞𝐧𝐬𝐡𝐨𝐭
-┣ ◁️⚡💥 𝐮𝐩𝐝𝐚𝐭𝐞
-┣ ◁️⚡💥 𝐨𝐧𝐥𝐢𝐧𝐞𝐜𝐨𝐮𝐧𝐭𝐫𝐢𝐞𝐬
-┣ ◁️⚡💥 𝐧𝐮𝐦𝐛𝐞𝐫𝐢𝐧𝐛𝐨𝐱
-┣ ◁️⚡💥 𝐭𝐞𝐦𝐩𝐧𝐮𝐦𝐛𝐞𝐫
-┣ ◁️⚡💥 𝐭𝐫𝐚𝐜𝐤𝐢𝐩
-┣ ◁️⚡💥 𝐢𝐩
-┣ ◁️⚡💥 𝐬𝐞𝐜𝐦𝐨𝐯𝐢𝐞
-┣ ◁️⚡💥 𝐬𝐞𝐥𝐞𝐜𝐭𝐦𝐨𝐯𝐢𝐞
+╭⭑━━━➤ sᴘᴇᴄɪᴀʟ ᴍᴇɴᴜ  
+┣ ◁️⚡💥 𝐩𝐫𝐨𝐦𝐨𝐭𝐞𝐬𝐞𝐥𝐟  
+┣ ◁️⚡💥 𝐛𝐚𝐧𝐭𝐮𝐭𝐨𝐫𝐢𝐚𝐥  
+┣ ◁️⚡💥 𝐬𝐜𝐫𝐞𝐞𝐧𝐬𝐡𝐨𝐭  
+┣ ◁️⚡💥 𝐮𝐩𝐝𝐚𝐭𝐞  
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ ᴘʀᴏ ʙᴜɢs (ᴀɴᴅʀᴏɪᴅ)
@@ -6396,33 +6690,23 @@ ${readmore}
 ┣ ◁️⚡💥 𝐮𝐧𝐛𝐚𝐧 
 ╰━━━━━━━━━━━━━━━━━━╯
 
-╭⭑━━━➤ sᴍᴀʀᴛ ᴍᴇɴᴜ
-┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐠𝐩𝐭
-┣ ◁️⚡💥 𝐰𝐞𝐚𝐭𝐡𝐞𝐫
-┣ ◁️⚡💥 𝐭𝐢𝐦𝐞
-┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐛𝐨𝐭 [𝐨𝐩𝐭𝐢𝐨𝐧]
-┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐛𝐨𝐭𝐚𝐮𝐝𝐢𝐨 [𝐨𝐩𝐭𝐢𝐨𝐧]
-┣ ◁️⚡💥 𝐠𝐩𝐭3
-┣ ◁️⚡💥 𝐠𝐩𝐭2
-┣ ◁️⚡💥 𝐠𝐨𝐨𝐠𝐥𝐞
-┣ ◁️⚡💥 𝐠𝐞𝐦𝐢𝐧𝐢
-┣ ◁️⚡💥 𝐠𝐞𝐦𝐢𝐧𝐢2
-┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐠𝐩𝐭4
-┣ ◁️⚡💥 𝐛𝐥𝐚𝐜𝐤𝐛𝐨𝐱
-┣ ◁️⚡💥 𝐠𝐩𝐭𝐩𝐫𝐨
-┣ ◁️⚡💥 𝐠𝐩𝐭4
-┣ ◁️⚡💥 𝐛𝐢𝐠-𝐝𝐚𝐝𝐝𝐲-𝐚𝐢
-┣ ◁️⚡💥 𝐥𝐥𝐚𝐦𝐚
+╭⭑━━━➤ sᴍᴀʀᴛ ᴍᴇɴᴜ  
+┣ ◁️⚡💥 𝐯𝐢𝐝𝐞𝐨  
+┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐠𝐩𝐭  
+┣ ◁️⚡💥 𝐰𝐞𝐚𝐭𝐡𝐞𝐫  
+┣ ◁️⚡💥 𝐭𝐢𝐦𝐞  
+┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐛𝐨𝐭 [𝐨𝐩𝐭𝐢𝐨𝐧] 
+┣ ◁️⚡💥 𝐜𝐡𝐚𝐭𝐛𝐨𝐭𝐚𝐮𝐝𝐢𝐨 [𝐨𝐩𝐭𝐢𝐨𝐧] 
+┣ ◁️⚡💥 𝐠𝐩𝐭3  
+┣ ◁️⚡💥 𝐠𝐩𝐭2  
+┣ ◁️⚡💥 𝐠𝐨𝐨𝐠𝐥𝐞  
 ╰━━━━━━━━━━━━━━━━━━╯
 
-╭⭑━━━➤ ᴀɴᴛɪ ᴍᴇɴᴜ
+╭⭑━━━➤ ᴀɴᴛɪ ᴍᴇɴᴜ  
 ┣ ◁️⚡💥 𝐚𝐧𝐭𝐢𝐛𝐢𝐥𝐥𝐢𝐧𝐠 [𝐨𝐩𝐭𝐢𝐨𝐧]
 ┣ ◁️⚡💥 𝐚𝐧𝐭𝐢𝐝𝐞𝐥𝐞𝐭𝐞 [𝐨𝐩𝐭𝐢𝐨𝐧]
 ┣ ◁️⚡💥 𝐚𝐧𝐭𝐢𝐥𝐢𝐧𝐤 [𝐨𝐩𝐭𝐢𝐨𝐧]
 ┣ ◁️⚡💥 𝐚𝐧𝐭𝐢𝐜𝐚𝐥𝐥 [𝐨𝐩𝐭𝐢𝐨𝐧]
-┣ ◁️⚡💥 𝐚𝐧𝐭𝐢𝐬𝐩𝐚𝐦 [𝐨𝐩𝐭𝐢𝐨𝐧]
-┣ ◁️⚡💥 𝐚𝐧𝐭𝐢𝐥𝐢𝐧𝐤-𝐰𝐚𝐫𝐧 [𝐨𝐩𝐭𝐢𝐨𝐧]
-┣ ◁️⚡💥 𝐚𝐧𝐭𝐢𝐥𝐢𝐧𝐤-𝐤𝐢𝐜𝐤 [𝐨𝐩𝐭𝐢𝐨𝐧]
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ ɢᴀᴍᴇs ᴍᴇɴᴜ  
@@ -6455,7 +6739,7 @@ ${readmore}
 ┣ ◁️⚡💥 𝐮𝐧𝐛𝐥𝐨𝐜𝐤  
 ╰━━━━━━━━━━━━━━━━━━╯
 
-╭⭑━━━➤ 𝐆𝐑𝐎𝐔𝐏 𝐌𝐄𝐍𝐔
+╭⭑━━━➤ 𝐆𝐑𝐎𝐔𝐏 𝐌𝐄𝐍𝐔  
 ┣ ◁️⚡💥 𝐜𝐥𝐨𝐬𝐞𝐭𝐢𝐦𝐞
 ┣ ◁️⚡💥 𝐨𝐩𝐞𝐧𝐭𝐢𝐦𝐞
 ┣ ◁️⚡💥 𝐤𝐢𝐜𝐤
@@ -6469,13 +6753,8 @@ ${readmore}
 ┣ ◁️⚡💥 𝐠𝐫𝐨𝐮𝐩 []
 ┣ ◁️⚡💥 𝐞𝐝𝐢𝐭𝐢𝐧𝐟𝐨
 ┣ ◁️⚡💥 𝐥𝐢𝐧𝐤𝐠𝐜
-┣ ◁️⚡💥 𝐫𝐞𝐦𝐨𝐯𝐞
-┣ ◁️⚡💥 𝐫𝐞𝐦𝐨𝐯𝐞𝐚𝐥𝐥
-┣ ◁️⚡💥 𝐩𝐫𝐨𝐦𝐨𝐭𝐞𝐚𝐥𝐥
-┣ ◁️⚡💥 𝐝𝐞𝐦𝐨𝐭𝐞𝐚𝐥𝐥
+┣ ◁️⚡💥 𝐫𝐞𝐯𝐨𝐤𝐞
 ┣ ◁️⚡💥 𝐥𝐢𝐬𝐭𝐨𝐧𝐥𝐢𝐧𝐞
-┣ ◁️⚡💥 𝐚𝐮𝐭𝐨𝐰𝐞𝐥𝐜𝐨𝐦𝐞
-┣ ◁️⚡💥 𝐚𝐮𝐭𝐨𝐥𝐞𝐚𝐯𝐞
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ 𝐌𝐀𝐈𝐍 𝐌𝐄𝐍𝐔
