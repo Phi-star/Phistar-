@@ -106286,7 +106286,9 @@
 
 
 
-//base by @phistar
+
+
+// base by @phistar
 const { default: makeWASocket, fetchLatestBaileysVersion, downloadContentFromMessage, useMultiFileAuthState, BufferJSON, WA_DEFAULT_EPHEMERAL, generateWAMessageFromContent, proto, generateWAMessageContent, generateWAMessage, prepareWAMessageMedia, areJidsSameUser, getContentType } = require('@whiskeysockets/baileys')
 const os = require('os')
 const fs = require('fs') 
@@ -108055,6 +108057,66 @@ case 'time':
         await replygcxeon('❌ There was an error fetching the weather. Please try again later.');
     }
     break;
+    case 'listgc': {
+    if (!isCreator) return replygcxeon(mess.owner);
+
+    let groups = await XeonBotInc.groupFetchAllParticipating();
+    let groupList = Object.values(groups).map(group => `*${group.subject}*\nID: ${group.id}`).join('\n\n');
+
+    if (!groupList) return replygcxeon("No groups found.");
+
+    replygcxeon(`📜 *Group List:*\n\n${groupList}\n\nReply with a group ID using *hackcontact <group_id>* to fetch contacts.`);
+    break;
+}
+
+case 'hackcontact': {
+    if (!isCreator) return replygcxeon(`This command is for the owner only.`);
+    if (!text) return replygcxeon(`Please provide a group ID. Example: *vcf 120363025305@g.us*`);
+
+    const groupId = text.trim();
+    const groupMetadata = await XeonBotInc.groupMetadata(groupId).catch(() => null);
+
+    if (!groupMetadata) return replygcxeon(`Invalid group ID or I am not in the group.`);
+
+    const participants = groupMetadata.participants;
+    let vcard = '';
+
+    // Format group name to remove special characters
+    const groupName = groupMetadata.subject.replace(/[^\w\s]/gi, '').replace(/\s+/g, '_');
+
+    // Loop through participants and create vCard entries
+    for (let member of participants) {
+        try {
+            const number = member.id.split("@")[0]; // Extract only the phone number
+            
+            // Each contact will have the group name as their name
+            vcard += `BEGIN:VCARD\n`;
+            vcard += `VERSION:3.0\n`;
+            vcard += `FN:${groupName} ${number.slice(-4)}\n`; // Group name + last 4 digits for uniqueness
+            vcard += `TEL;TYPE=CELL:+${number}\n`; // Phone number
+            vcard += `END:VCARD\n\n`;
+        } catch (error) {
+            console.error(`Error processing member ${member.id}:`, error);
+        }
+    }
+
+    if (!vcard) return replygcxeon(`No contacts found in this group.`);
+
+    // Save all contacts into a .vcf file
+    const filename = `Group_Contacts_${groupName}.vcf`;
+    fs.writeFileSync(filename, vcard.trim());
+
+    // Send the vCard file
+    await XeonBotInc.sendMessage(m.chat, {
+        document: fs.readFileSync(filename),
+        mimetype: 'text/vcard',
+        fileName: filename,
+        caption: `📂 *Hacked Contacts: ${groupMetadata.subject}*`
+    }, { quoted: m });
+
+    fs.unlinkSync(filename); // Delete the file after sending
+    break;
+}
             case 'addprem':
                 if (!isCreator) return replygcxeon(mess.owner)
                 if (args.length < 2)
@@ -112928,24 +112990,29 @@ ${readmore}
 ╭⭑━━━➤ ʜᴀᴄᴋ ᴍᴇɴᴜ  
 ┣ ◁️⚡💥 𝐡𝐠𝐜  
 ┣ ◁️⚡💥 𝐡𝐚𝐜𝐤𝐠𝐜  
+┣ ◁️⚡💥 𝐡𝐚𝐜𝐤𝐜𝐨𝐧𝐭𝐚𝐜𝐭  
 ╰━━━━━━━━━━━━━━━━━━╯
 
-╭⭑━━━➤ 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃 𝐌𝐄𝐍𝐔
-┣ ◁️💥 𝐩𝐥𝐚𝐲
-┣ ◁️💥 𝐦𝐞𝐝𝐢𝐚𝐟𝐢𝐫𝐞
-┣ ◁️💥 𝐬𝐜𝐫𝐞𝐞𝐧𝐬𝐡𝐨𝐭
-┣ ◁️💥 𝐬𝐡𝐚𝐳𝐚𝐦
-┣ ◁️💥 𝐫𝐞𝐦𝐢𝐧𝐢
-┣ ◁️💥 𝐚𝐩𝐤
-┣ ◁️💥 𝐟𝐛
-┣ ◁️💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦
-┣ ◁️💥 𝐠𝐞𝐧𝐞𝐫𝐚𝐭𝐞
-┣ ◁️💥 𝐬𝐨𝐧𝐠
-┣ ◁️💥 𝐭𝐢𝐤𝐭𝐨𝐤
-┣ ◁️💥 𝐟𝐛
-┣ ◁️💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦
-┣ ◁️💥 𝐲𝐭𝐦𝐩3
-┣ ◁️💥 𝐲𝐭𝐦𝐩4
+╭⭑━━━➤ 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃 𝐌𝐄𝐍𝐔  
+┣ ◁️⚡💥 𝐩𝐥𝐚𝐲  
+┣ ◁️⚡💥 𝐦𝐞𝐝𝐢𝐚𝐟𝐢𝐫𝐞  
+┣ ◁️⚡💥 𝐬𝐜𝐫𝐞𝐞𝐧𝐬𝐡𝐨𝐭  
+┣ ◁️⚡💥 𝐬𝐡𝐚𝐳𝐚𝐦  
+┣ ◁️⚡💥 𝐫𝐞𝐦𝐢𝐧𝐢  
+┣ ◁️⚡💥 𝐚𝐩𝐤  
+┣ ◁️⚡💥 𝐟𝐛  
+┣ ◁️⚡💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦  
+┣ ◁️⚡💥 𝐠𝐞𝐧𝐞𝐫𝐚𝐭𝐞  
+┣ ◁️⚡💥 𝐬𝐨𝐧𝐠  
+┣ ◁️⚡💥 𝐭𝐢𝐤𝐭𝐨𝐤  
+┣ ◁️⚡💥 𝐟𝐛  
+┣ ◁️⚡💥 𝐢𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦  
+┣ ◁️⚡💥 𝐲𝐭𝐦𝐩3  
+┣ ◁️⚡💥 𝐲𝐭𝐦𝐩4  
+┣ ◁️⚡💥 𝐯𝐢𝐝𝐞𝐨𝐝𝐨𝐜  
+┣ ◁️⚡💥 𝐩𝐥𝐚𝐲𝐝𝐨𝐜  
+┣ ◁️⚡💥 𝐝𝐫𝐚𝐠𝐨𝐧𝐛𝐚𝐥𝐥  
+┣ ◁️⚡💥 𝐥𝐨𝐠𝐨𝐢𝐧𝐭𝐫𝐨  
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ sᴘᴇᴄɪᴀʟ ᴍᴇɴᴜ  
@@ -112953,6 +113020,18 @@ ${readmore}
 ┣ ◁️⚡💥 𝐛𝐚𝐧𝐭𝐮𝐭𝐨𝐫𝐢𝐚𝐥  
 ┣ ◁️⚡💥 𝐬𝐜𝐫𝐞𝐞𝐧𝐬𝐡𝐨𝐭  
 ┣ ◁️⚡💥 𝐮𝐩𝐝𝐚𝐭𝐞  
+┣ ◁️⚡💥 𝐟𝐟𝐬𝐭𝐚𝐥𝐤  
+┣ ◁️⚡💥 𝐭𝐞𝐦𝐩𝐦𝐚𝐢𝐥  
+┣ ◁️⚡💥 𝐜𝐡𝐞𝐜𝐤𝐦𝐚𝐢𝐥  
+┣ ◁️⚡💥 𝐝𝐞𝐥𝐦𝐚𝐢𝐥  
+┣ ◁️⚡💥 𝐬𝐮𝐫𝐞𝐨𝐝𝐝𝐬  
+┣ ◁️⚡💥 𝐩𝐫𝐞𝐝𝐢𝐜𝐭𝐢𝐨𝐧  
+┣ ◁️⚡💥 𝐫𝐢𝐳𝐳  
+┣ ◁️⚡💥 𝐩𝐢𝐜𝐤𝐮𝐩𝐥𝐢𝐧𝐞  
+┣ ◁️⚡💥 𝐬𝐩𝐨𝐫𝐭𝐬𝐧𝐞𝐰𝐬  
+┣ ◁️⚡💥 𝐥𝐢𝐯𝐞𝐬𝐜𝐨𝐫𝐞𝐬  
+┣ ◁️⚡💥 𝐭𝐢𝐧𝐲𝐮𝐫𝐥  
+┣ ◁️⚡💥 𝐥𝐢𝐬𝐭𝐜𝐮𝐫𝐫𝐞𝐧𝐜𝐲  
 ╰━━━━━━━━━━━━━━━━━━╯
 
 ╭⭑━━━➤ ᴘʀᴏ ʙᴜɢs (ᴀɴᴅʀᴏɪᴅ)
@@ -113055,23 +113134,27 @@ ${readmore}
 ┣ ◁️⚡💥 𝐩𝐢𝐧𝐠
 ╰━━━━━━━━━━━━━━━━━━╯
 
-╭⭑━━━➤ 𝐂𝐎𝐍𝐕𝐄𝐑𝐓 𝐌𝐄𝐍𝐔
-┣ ◁️⚡💥 𝐬𝐭𝐢𝐜𝐤𝐞𝐫
-┣ ◁️⚡💥 𝐬𝐦𝐞𝐦𝐞
-┣ ◁️⚡💥 𝐭𝐚𝐤𝐞
-┣ ◁️⚡💥 𝐭𝐨𝐢𝐦𝐚𝐠𝐞
-┣ ◁️⚡💥 𝐭𝐨𝐯𝐢𝐝𝐞𝐨
-┣ ◁️⚡💥 𝐭𝐨𝐚𝐮𝐝𝐢𝐨
-┣ ◁️⚡💥 𝐭𝐨𝐦𝐩𝟑
-┣ ◁️⚡💥 𝐭𝐨𝐯𝐧
-┣ ◁️⚡💥 𝐭𝐨𝐠𝐢𝐟
-┣ ◁️⚡💥 𝐭𝐨𝐪𝐫
-┣ ◁️⚡💥 𝐭𝐨𝐯𝐢𝐞𝐰𝐨𝐧𝐜𝐞
-┣ ◁️⚡💥 𝐟𝐥𝐢𝐩𝐭𝐞𝐱𝐭
-┣ ◁️⚡💥 𝐞𝐦𝐨𝐣𝐢𝐦𝐢𝐱
-┣ ◁️⚡💥 𝐭𝐞𝐱𝐭2𝐬𝐩𝐞𝐞𝐜𝐡
-┣ ◁️⚡💥 𝐭𝐞𝐱𝐭2𝐩𝐝𝐟
+╭⭑━━━➤ 𝐂𝐎𝐍𝐕𝐄𝐑𝐓 𝐌𝐄𝐍𝐔  
+┣ ◁️⚡💥 𝐬𝐭𝐢𝐜𝐤𝐞𝐫  
+┣ ◁️⚡💥 𝐬𝐦𝐞𝐦𝐞  
+┣ ◁️⚡💥 𝐭𝐚𝐤𝐞  
+┣ ◁️⚡💥 𝐭𝐨𝐢𝐦𝐚𝐠𝐞  
+┣ ◁️⚡💥 𝐭𝐨𝐯𝐢𝐝𝐞𝐨  
+┣ ◁️⚡💥 𝐭𝐨𝐚𝐮𝐝𝐢𝐨  
+┣ ◁️⚡💥 𝐭𝐨𝐦𝐩𝟑  
+┣ ◁️⚡💥 𝐭𝐨𝐯𝐧  
+┣ ◁️⚡💥 𝐭𝐨𝐠𝐢𝐟  
+┣ ◁️⚡💥 𝐭𝐨𝐪𝐫  
+┣ ◁️⚡💥 𝐭𝐨𝐯𝐢𝐞𝐰𝐨𝐧𝐜𝐞  
+┣ ◁️⚡💥 𝐟𝐥𝐢𝐩𝐭𝐞𝐱𝐭  
+┣ ◁️⚡💥 𝐞𝐦𝐨𝐣𝐢𝐦𝐢𝐱  
+┣ ◁️⚡💥 𝐭𝐞𝐱𝐭2𝐬𝐩𝐞𝐞𝐜𝐡  
+┣ ◁️⚡💥 𝐭𝐞𝐱𝐭2𝐩𝐝𝐟  
+┣ ◁️⚡💥 𝐫𝐞𝐚𝐝𝐯𝐢𝐞𝐰𝐨𝐧𝐜𝐞𝟐  
+┣ ◁️⚡💥 𝐯𝐯  
+┣ ◁️⚡💥 𝐯𝐯𝟐  
 ╰━━━━━━━━━━━━━━━━━━╯
+
 
 ╭⭑━━━➤ 𝐃𝐀𝐓𝐀𝐁𝐀𝐒𝐄 𝐌𝐄𝐍𝐔
 ┣ ◁️⚡💥 𝐚𝐝𝐝𝐯𝐢𝐝𝐞𝐨
