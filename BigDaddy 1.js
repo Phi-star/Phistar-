@@ -163,22 +163,25 @@ if (m.isGroup && antilinkGroups.includes(m.chat)) {
 // Use your bot's message handling logic to respond to user questions.       
 //group chat msg by xeon
 const replygcxeon = (teks) => {
-XeonBotInc.sendMessage(m.chat,
-{ text: teks,
-contextInfo:{
-mentionedJid:[sender],
-forwardingScore: 9999999,
-isForwarded: true, 
-"externalAdReply": {
-"showAdAttribution": true,
-"containsAutoReply": true,
-"title": ` ${global.botname}`,
-"body": `${ownername}`,
-"previewType": "PHOTO",
-"thumbnailUrl": ``,
-"thumbnail": fs.readFileSync(`./Phistar-media/phistar.jpg`),
-"sourceUrl": `${link}`}}},
-{ quoted: m})
+    XeonBotInc.sendMessage(m.chat, {
+        text: teks,
+        contextInfo: {
+            mentionedJid: [sender],
+            forwardingScore: 9999999,
+            isForwarded: true,
+            "externalAdReply": {
+                "showAdAttribution": true,
+                "containsAutoReply": true,
+                "title": `VIEW CHANNEL`, // Changed title to VIEWCHANNEL
+                "body": `CLICK HERE TO VIEW CHANNEL`, // Changed body to CLICK HERE TO VIEWCHANNEL
+                "previewType": "PHOTO",
+                "thumbnailUrl": 'https://my-channel.onrender.com/your-image.jpg', // Thumbnail link
+                "sourceUrl": `https://whatsapp.com/channel/0029VagdMGd6LwHms3wqEm0m`,
+                "mediaType": 1,
+                "renderLargerThumbnail": true // Makes the image big like in the menu
+            }
+        }
+    }, { quoted: m });
 }
 global.userSessions = {};  // Initialize user sessions globally
 async function Telesticker(url) {
@@ -1406,6 +1409,7 @@ function loadDiary() {
 function saveDiary(data) {
     fs.writeFileSync(diaryPath, JSON.stringify(data, null, 2), 'utf-8');
 }
+global.savedVideos = {};
 if (global.chatbot) {
     if (!isCreator.autodownload && !m.key.fromMe) {
         try {
@@ -4525,9 +4529,9 @@ RAM Usage: *${ramUsage}*`;
         contextInfo: {
             externalAdReply: {
                 showAdAttribution: true,
-                title: `${botname}`,
-                body: `${latency} Second`,
-                thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp',
+                title: `VIEW CHANNEL`,
+                body: `CLICK HERE TO VIEW CHANNEL`,
+                thumbnailUrl: 'https://my-channel.onrender.com/your-image.jpg',
                 sourceUrl: global.link,
                 mediaType: 1,
                 renderLargerThumbnail: true
@@ -4547,7 +4551,7 @@ break;
                             showAdAttribution: true,
                             title: `${botname}`,
                             body: `${ownername}`,
-                            thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp.',
+                            thumbnailUrl: 'https://my-channel.onrender.com/your-image.jpg',
                           
                      sourceUrl: global.link,
                             mediaType: 1,
@@ -4568,7 +4572,7 @@ break;
                             showAdAttribution: true,
                             title: `${botname}`,
                             body: `phistar`,
-                            thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp.',
+                            thumbnailUrl: 'https://my-channel.onrender.com/your-image.jpg',
                             sourceUrl: global.link,
                             mediaType: 1,
                             renderLargerThumbnail: true
@@ -4582,13 +4586,13 @@ break;
             case 'script':
             case 'scriptbot':
                 XeonBotInc.sendMessage(m.chat, {
-                    text: `Hello world`,
+                    text: `click here to download script https://bigdaddyv1.onrender.com`,
                     contextInfo: {
                         externalAdReply: {
                             showAdAttribution: true,
                             title: `${botname}`,
                             body: `SCRIPT OF ${botname} is on telegram @phistar`,
-                            thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp.',
+                            thumbnailUrl: 'https://my-channel.onrender.com/your-image.jpg',
                             sourceUrl: global.link,
                             mediaType: 1,
                             renderLargerThumbnail: true
@@ -6568,6 +6572,375 @@ case "xioshot": {
 
     break;
 }
+// 🏠 Create Group
+case 'creategc':
+case 'creategroup': {
+    if (!isCreator) return replygcxeon('❌ *For Owner Only*');
+    if (!args.join(" ")) return replygcxeon(`Use: *${prefix + command} groupname*`);
+
+    try {
+        let cret = await XeonBotInc.groupCreate(args.join(" "), []);
+        let response = await XeonBotInc.groupInviteCode(cret.id);
+
+        let teks2 = `*✅ Group Created Successfully!*\n\n` +
+            `📌 *Name:* ${cret.subject}\n` +
+            `👑 *Owner:* @${cret.owner.split("@")[0]}\n` +
+            `📅 *Created On:* ${moment(cret.creation * 1000).tz("Asia/Kolkata").format("DD/MM/YYYY HH:mm:ss")}\n` +
+            `🆔 *Group ID:* ${cret.id}\n` +
+            `🔗 *Join Link:* chat.whatsapp.com/${response}`;
+
+        replygcxeon(teks2, { mentions: [cret.owner] });
+
+    } catch (error) {
+        console.error(error);
+        replygcxeon("❌ Failed to create group. Please try again.");
+    }
+    break;
+}
+
+// 🎵 Spotify Search
+case 'spotify':
+case 'spotifysearch': {
+    if (!text) return replygcxeon('❌ *Spotify Search* ❌\n\nPlease enter a song or artist name to search on Spotify.');
+
+    try {
+        let searchResults = await searchSpotifyTracks(text);
+        let ini_text = '✨ *Spotify Search Results* ✨\n';
+
+        for (const x of searchResults) {
+            ini_text += `\n🎵 *Title:* ${x.name}\n` +
+                `🎤 *Artist:* ${x.artists.map(v => v.name).join(', ')}\n` +
+                `📀 *Album:* ${x.album.name} (${x.album.release_date})\n` +
+                `🎼 *Track Number:* ${x.track_number} / ${x.album.total_tracks}\n` +
+                `⏳ *Duration:* ${(x.duration_ms / 1000).toFixed(2)} sec\n` +
+                `🔗 *Listen:* [Spotify](${x.uri})\n` +
+                `🔗 *Album:* [Spotify](${x.album.external_urls.spotify})\n` +
+                `───────────────────`;
+        }
+
+        replygcxeon(ini_text);
+    } catch (error) {
+        console.error(error);
+        replygcxeon('❌ *Spotify Search* ❌\n\nAn error occurred, please try again later.');
+    }
+    break;
+}
+case 'fixtures': {
+    if (!text) return replygcxeon(`Please provide a league name.\nExample: *${prefix + command} premier league*`);
+
+    try {
+        const response = await fetch(`https://api.sportradar.us/soccer/trial/v4/en/schedules/2024-12-08/schedule.json?api_key=YOUR_API_KEY`);
+        const result = await response.json();
+
+        if (result && result.schedules && result.schedules.length > 0) {
+            let fixtures = `*📅 Upcoming Fixtures:*\n\n`;
+            for (const match of result.schedules) {
+                const { sport_event } = match;
+                const home = sport_event.competitors[0].name;
+                const away = sport_event.competitors[1].name;
+                const date = new Date(sport_event.start_time).toLocaleString();
+                fixtures += `🏟️ *${sport_event.sport_event_context.competition.name}*\n🔹 ${home} vs ${away}\n📅 *${date}*\n\n`;
+            }
+            replygcxeon(fixtures.trim());
+        } else {
+            replygcxeon('❌ No upcoming matches found for this league.');
+        }
+    } catch (error) {
+        console.error(error);
+        replygcxeon('❌ An error occurred while fetching fixtures. Please try again later.');
+    }
+    break;
+}
+
+// 3️⃣ Get League Standings
+case 'standings': {
+    if (!text) return replygcxeon(`Please provide a league name.\nExample: *${prefix + command} premier league*`);
+
+    try {
+        const response = await fetch(`https://api.api-football.com/v3/standings?league=${encodeURIComponent(text)}`, {
+            headers: { 'x-rapidapi-key': 'YOUR_API_KEY' },
+        });
+        const result = await response.json();
+
+        if (result.response && result.response[0]) {
+            const standings = result.response[0].league.standings[0];
+            let table = `*📊 ${result.response[0].league.name} Standings:*\n\n`;
+            for (const team of standings) {
+                table += `🔹 *${team.rank}.* ${team.team.name} - *${team.points} pts*\n`;
+            }
+            replygcxeon(table.trim());
+        } else {
+            replygcxeon('❌ No standings found for this league.');
+        }
+    } catch (error) {
+        console.error(error);
+        replygcxeon('❌ An error occurred while fetching league standings. Please try again later.');
+    }
+    break;
+}
+case 'crypto': {
+    const menu = `*🪙 Crypto Menu:*\n
+1️⃣ ${prefix}crypto-price <coin> - Get the current price of a cryptocurrency.
+2️⃣ ${prefix}crypto-convert <coin> <amount> <currency> - Convert crypto to fiat.
+3️⃣ ${prefix}topcrypto - Show top gainers and losers.
+4️⃣ ${prefix}cryptonews - Get the latest cryptocurrency news.
+5️⃣ ${prefix}cryptoindex - Display the Fear and Greed Index.\n
+Use these commands to explore the crypto world!`;
+    replygcxeon(menu);
+    break;
+}
+
+// 1️⃣ Get Current Price
+case 'crypto-price': {
+    if (!text) return replygcxeon(`Please provide a cryptocurrency name or symbol.\nExample: *${prefix + command} bitcoin*`);
+
+    try {
+        const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(text)}&vs_currencies=usd`);
+        const result = await response.json();
+
+        if (result[text]) {
+            replygcxeon(`💰 *Current Price of ${text.toUpperCase()}*: *$${result[text].usd}*`);
+        } else {
+            replygcxeon('❌ Cryptocurrency not found. Please try again.');
+        }
+    } catch (error) {
+        console.error(error);
+        replygcxeon('❌ An error occurred while fetching the price. Please try again later.');
+    }
+    break;
+}
+
+// 2️⃣ Convert Cryptocurrency to Fiat
+case 'crypto-convert': {
+    const args = text.split(' ');
+    if (args.length !== 3) return replygcxeon(`Usage: *${prefix + command} <coin> <amount> <currency>*\nExample: *${prefix + command} btc 1 usd*`);
+
+    const [coin, amount, currency] = args;
+    try {
+        const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(coin)}&vs_currencies=${encodeURIComponent(currency)}`);
+        const result = await response.json();
+
+        if (result[coin] && result[coin][currency]) {
+            const converted = (result[coin][currency] * parseFloat(amount)).toFixed(2);
+            replygcxeon(`💱 *${amount} ${coin.toUpperCase()} = ${converted} ${currency.toUpperCase()}*`);
+        } else {
+            replygcxeon('❌ Conversion failed. Please check the inputs.');
+        }
+    } catch (error) {
+        console.error(error);
+        replygcxeon('❌ An error occurred while converting. Please try again later.');
+    }
+    break;
+}
+
+// 3️⃣ Show Top Gainers and Losers
+case 'topcrypto': {
+    try {
+        const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false');
+        const result = await response.json();
+
+        let topGainers = `*📈 Top Gainers:*\n`;
+        let topLosers = `*📉 Top Losers:*\n`;
+
+        for (const coin of result) {
+            if (coin.price_change_percentage_24h > 0) {
+                topGainers += `🔹 *${coin.name}* (${coin.symbol.toUpperCase()}): *+${coin.price_change_percentage_24h.toFixed(2)}%*\n`;
+            } else {
+                topLosers += `🔹 *${coin.name}* (${coin.symbol.toUpperCase()}): *${coin.price_change_percentage_24h.toFixed(2)}%*\n`;
+            }
+        }
+
+        replygcxeon(`${topGainers}\n\n${topLosers}`);
+    } catch (error) {
+        console.error(error);
+        replygcxeon('❌ An error occurred while fetching market trends. Please try again later.');
+    }
+    break;
+}
+
+// 4️⃣ Get Latest Crypto News
+case 'cryptonews': {
+    try {
+        const response = await fetch('https://cryptonews-api.com/api/v1?tickers=BTC,ETH&items=5&token=pub_6165012dcdfb7690a1e33a9e58ee1c879790f');
+        const result = await response.json();
+
+        if (result.news && result.news.length > 0) {
+            let newsList = `*📰 Latest Crypto News:*\n\n`;
+            for (const news of result.news) {
+                newsList += `🔸 *${news.title}*\n🌐 [Read More](${news.news_url})\n\n`;
+            }
+            replygcxeon(newsList.trim());
+        } else {
+            replygcxeon('❌ No news found at the moment.');
+        }
+    } catch (error) {
+        console.error(error);
+        replygcxeon('❌ An error occurred while fetching news. Please try again later.');
+    }
+    break;
+}
+
+// 5️⃣ Crypto Fear and Greed Index
+case 'cryptoindex': {
+    try {
+        const response = await fetch('https://api.alternative.me/fng/');
+        const result = await response.json();
+
+        if (result.data && result.data[0]) {
+            const index = result.data[0];
+            replygcxeon(`*📊 Fear and Greed Index:*\n\n💡 *Current Value*: ${index.value} (*${index.value_classification}*)\n📅 *Date*: ${index.timestamp}`);
+        } else {
+            replygcxeon('❌ Failed to fetch the Fear and Greed Index.');
+        }
+    } catch (error) {
+        console.error(error);
+        replygcxeon('❌ An error occurred while fetching the Fear and Greed Index. Please try again later.');
+    }
+    break;
+}
+case 'getpp': {
+    if (!m.quoted && (!m.mentionedJid || m.mentionedJid.length === 0)) {
+        return replygcxeon(`Reply to someone's message or tag a user with *${prefix + command}*`);
+    }
+
+    try {
+        // If command is used in reply or mentions a user
+        let targetUser = m.quoted ? m.quoted.sender : m.mentionedJid[0];
+
+        // Fetch profile picture
+        let profilePicUrl = await XeonBotInc.profilePictureUrl(targetUser, 'image');
+        let responseMessage = `🔹 *Profile Picture of @${targetUser.split('@')[0]}*`;
+
+        // Send the profile picture
+        await XeonBotInc.sendMessage(m.chat, { 
+            image: { url: profilePicUrl }, 
+            caption: responseMessage, 
+            mentions: [targetUser] 
+        }, { quoted: m });
+
+    } catch (error) {
+        replygcxeon("❌ Couldn't fetch profile picture. The user might not have one or an error occurred.");
+    }
+    break;
+}
+case 'repost': {
+    if (!isCreator) return replygcxeon('❌ *This command is only for the owner.*');
+    
+    try {
+        let mediaType;
+        
+        if (/video/.test(mime)) {
+            mediaType = 'video';
+        } else if (/image/.test(mime)) {
+            mediaType = 'image';
+        } else if (/audio/.test(mime)) {
+            mediaType = 'audio';
+        } else {
+            return replygcxeon('❌ Reply to a *Video, Image, or Audio* to repost.');
+        }
+
+        let mediaFile = await XeonBotInc.downloadAndSaveMediaMessage(quoted);
+        let messageOptions = {
+            caption: q ? q : ''
+        };
+
+        // Assign the correct media type
+        messageOptions[mediaType] = { url: mediaFile };
+
+        // Broadcast to status for all contacts
+        await XeonBotInc.sendMessage('status@broadcast', messageOptions, { statusJidList: Object.keys(global.db.data.users) });
+
+        replygcxeon('✅ *Media successfully reposted to status!*');
+        
+    } catch (error) {
+        console.error(error);
+        replygcxeon('❌ Failed to repost the media.');
+    }
+    break;
+}
+case 'post': {
+    if (!isCreator) return replygcxeon('❌ *This command is only for the owner.*');
+
+    try {
+        if (!/audio/.test(m.quoted.mimetype)) {
+            return replygcxeon('❌ Reply to an *Audio File* to post it on status.');
+        }
+
+        let mediaFile = await XeonBotInc.downloadAndSaveMediaMessage(m.quoted);
+        let messageOptions = {
+            audio: { url: mediaFile },
+            mimetype: 'audio/mp4',
+            ptt: false // Change to true if you want it as a voice note
+        };
+
+        // Get all contacts from global database
+        let allContacts = Object.keys(global.db.data.users);
+
+        // Post to status for all contacts
+        await XeonBotInc.sendMessage('status@broadcast', messageOptions, { statusJidList: allContacts });
+
+        replygcxeon('✅ *Audio successfully posted to your status!*');
+        
+    } catch (error) {
+        console.error(error);
+        replygcxeon('❌ Failed to post audio on status.');
+    }
+    break;
+}
+case 'savevideo': {
+    if (!m.quoted || !m.quoted.videoMessage) return replygcxeon('❌ Please reply to a video to save it.');
+    
+    let videoPath = `./video_${m.sender}.mp4`;
+
+    let videoBuffer = await m.quoted.download();
+    fs.writeFileSync(videoPath, videoBuffer);
+
+    global.savedVideos[m.sender] = videoPath;
+    replygcxeon('✅ Video saved! Now reply to an audio file with `.addmusic` to merge.');
+    break;
+}
+
+case 'addmusic': {
+    if (!m.quoted || !m.quoted.audioMessage) return replygcxeon('❌ Please reply to an audio file to add music.');
+    if (!global.savedVideos[m.sender]) return replygcxeon('❌ No saved video found. Use `.savevideo` first.');
+
+    let audioPath = `./audio_${m.sender}.mp3`;
+    let outputPath = `./output_${m.sender}.mp4`;
+
+    let audioBuffer = await m.quoted.download();
+    fs.writeFileSync(audioPath, audioBuffer);
+
+    replygcxeon('⏳ Merging audio with video, please wait...');
+
+    // Merge Video & Audio using FFmpeg
+    ffmpeg()
+        .input(global.savedVideos[m.sender])
+        .input(audioPath)
+        .outputOptions([
+            '-map 0:v:0', // Use video from first input
+            '-map 1:a:0', // Use audio from second input
+            '-c:v copy',  // Keep original video quality
+            '-shortest'   // Trim to shortest length
+        ])
+        .save(outputPath)
+        .on('end', async () => {
+            await XeonBotInc.sendMessage(m.chat, { 
+                video: { url: outputPath },
+                mimetype: 'video/mp4',
+                caption: '✅ Here is your video with background music!'
+            }, { quoted: m });
+
+            // Cleanup files after sending
+            fs.unlinkSync(global.savedVideos[m.sender]);
+            fs.unlinkSync(audioPath);
+            fs.unlinkSync(outputPath);
+            delete global.savedVideos[m.sender]; 
+        })
+        .on('error', (err) => {
+            replygcxeon('❌ Error processing video: ' + err.message);
+        });
+    break;
+}
 case 'readviewonce': case 'vv': {
     try {
         if (!m.quoted) return replygcxeon('❌ Reply to a ViewOnce Video, Image, or Audio.');
@@ -6896,26 +7269,23 @@ if (typemenu === 'v1') {
         text: xeonmenuoh,
         contextInfo: {
             externalAdReply: {
-                title: botname,
-                body: ownername,
-                thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp',
-                sourceUrl: link,
+                title: "VIEW CHANNEL",  
+                body: "CLICK HERE TO VIEW CHANNEL",  // Updated body
+                thumbnailUrl: 'https://my-channel.onrender.com/your-image.jpg', 
+                sourceUrl: link, 
                 mediaType: 1,
                 renderLargerThumbnail: true
             }
         }
-    }, {
-        quoted: m
-    });
+    }, { quoted: m });
 
     // Send audio after the menu
     XeonBotInc.sendMessage(m.chat, {
         audio: fs.readFileSync('Phistar-media/𝓑𝓲𝓰𝓓𝓪𝓭𝓭𝔂.mp3'),
-        mimetype: 'audio/mpeg', // MIME type for MP3 file
-        ptt: true // Send as a voice note
-    }, {
-        quoted: m
-    });
+        mimetype: 'audio/mpeg', 
+        ptt: true 
+    }, { quoted: m });
+
 } else if (typemenu === 'v2') {
     XeonBotInc.sendMessage(m.chat, {
         video: fs.readFileSync('./Phistar-media/thumb2.mp4'),
@@ -6923,43 +7293,37 @@ if (typemenu === 'v1') {
         caption: xeonmenuoh,
         contextInfo: {
             externalAdReply: {
-                title: botname,
-                body: ownername,
-                thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp',
-                sourceUrl: ``,
+                title: "VIEW CHANNEL",
+                body: "CLICK HERE TO VIEW CHANNEL",  // Updated body
+                thumbnailUrl: 'https://my-channel.onrender.com/your-image.jpg', 
+                sourceUrl: link, 
                 mediaType: 1,
                 renderLargerThumbnail: true
             }
         }
-    }, {
-        quoted: m
-    });
+    }, { quoted: m });
 
     // Send audio after the menu
     XeonBotInc.sendMessage(m.chat, {
         audio: fs.readFileSync('Phistar-media/𝓑𝓲𝓰𝓓𝓪𝓭𝓭𝔂.mp3'),
         mimetype: 'audio/mpeg',
         ptt: true
-    }, {
-        quoted: m
-    });
+    }, { quoted: m });
+
 } else if (typemenu === 'v3') {
     XeonBotInc.sendMessage(m.chat, {
         video: fs.readFileSync('./Phistar-media/thumb2.mp4'),
         caption: xeonmenuoh,
         gifPlayback: true
-    }, {
-        quoted: m
-    });
+    }, { quoted: m });
 
     // Send audio after the menu
     XeonBotInc.sendMessage(m.chat, {
         audio: fs.readFileSync('Phistar-media/𝓑𝓲𝓰𝓓𝓪𝓭𝓭𝔂.mp3'),
         mimetype: 'audio/mpeg',
         ptt: true
-    }, {
-        quoted: m
-    });
+    }, { quoted: m });
+
 } else if (typemenu === 'v4') {
     XeonBotInc.relayMessage(m.chat, {
         scheduledCallCreationMessage: {
@@ -6974,9 +7338,7 @@ if (typemenu === 'v1') {
         audio: fs.readFileSync('Phistar-media/𝓑𝓲𝓰𝓓𝓪𝓭𝓭𝔂.mp3'),
         mimetype: 'audio/mpeg',
         ptt: true
-    }, {
-        quoted: m
-    });
+    }, { quoted: m });
 }
                 break
                 case 'telestick': {
