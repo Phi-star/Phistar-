@@ -24,8 +24,9 @@ const { smsg, getGroupAdmins, formatp, jam, formatDate, getTime, isUrl, await, s
 let afk = require("./lib/afk");
 const { addPremiumUser, getPremiumExpired, getPremiumPosition, expiredCheck, checkPremiumUser, getAllPremiumUser } = require('./lib/premiun')
 const { fetchBuffer, buffergif } = require("./lib/myfunc2")
-const tempMailData = {}; 
+const tempMailData = {};
 const settings = require('./phistarbot.js'); // Import settings
+if (!global.savedVideos) global.savedVideos = {};
 //bug database 
 var wkwk = fs.readFileSync(`./16/p.mp3`)
 var xsteek = fs.readFileSync(`./16/p.webp`)
@@ -2369,7 +2370,8 @@ case 'play': {
     if (!text) return replygcxeon(`*Example*: ${prefix + command} *Morayo by Wizkid*`);
 
     try {
-        const ytApiKey = 'AIzaSyB8zchDXuAcNfuqVVMlLMtrPybb4bUCIpo'; // Replace with your YouTube API Key
+        // Step 1: Search song using YouTube API
+        const ytApiKey = 'AIzaSyB8zchDXuAcNfuqVVMlLMtrPybb4bUCIpo'; // Your YouTube API Key
         const ytSearchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(text)}&key=${ytApiKey}`;
         const ytResponse = await fetch(ytSearchUrl);
 
@@ -2386,49 +2388,49 @@ case 'play': {
         const videoThumbnail = video.snippet.thumbnails.high.url;
         const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
-        // Build the preview message
+        // Step 2: Send search result preview
         const body = `🎶 *Song Player*\n\n` +
-                     `*🎵 Title:* ${videoTitle}\n` +
+                     `🎵 *Title:* ${videoTitle}\n` +
                      `🔗 *URL:* ${videoUrl}`;
 
-        // Send the preview
         await XeonBotInc.sendMessage(m.chat, {
             image: { url: videoThumbnail },
             caption: body
         }, { quoted: m });
 
-        // Fetch the audio from a YouTube audio API
-        const downloadUrl = `https://api.davidcyriltech.my.id/download/ytmp3?url=${encodeURIComponent(videoUrl)}`;
-        const downloadResponse = await axios.get(downloadUrl);
+        // Step 3: Fetch audio using the new API
+        const apiUrl = `https://apis.davidcyriltech.my.id/download/ytmp3?url=${encodeURIComponent(videoUrl)}`;
+        const apiResponse = await axios.get(apiUrl);
 
-        if (downloadResponse.data.success) {
-            const { download_url, title } = downloadResponse.data.result;
+        if (apiResponse.data.success) {
+            const { download_url, title } = apiResponse.data.result;
 
-            // Send the audio file
+            // Step 4: Send the audio file
             await XeonBotInc.sendMessage(m.chat, {
                 audio: { url: download_url },
                 mimetype: 'audio/mp4',
                 fileName: `${title}.mp3`,
-                caption: `🎧 *Here is your song:*\n\n*🎵 Title:* ${title}`
+                caption: `🎧 *Here's your song:*\n\n*🎵 Title:* ${title}`
             }, { quoted: m });
         } else {
-            replygcxeon(`❌ *Failed to fetch the song. Please try again later.*`);
+            replygcxeon(`❌ *Unable to download the song. Please try again later.*`);
         }
     } catch (error) {
-        console.error('Error in song command:', error);
+        console.error('Error in play command:', error);
         replygcxeon(`❌ *An error occurred while processing your request. Please try again later.*`);
     }
     break;
 }
-    case 'video':
+  case 'video': {
     try {
-        if (!text) return replygcxeon('❌ Please specify a video or artist name! Usage: video <video name>');
+        if (!text) return replygcxeon(`*Example*: ${prefix + command} *Wizkid Essence*`);
 
         const query = text.trim();
-        replygcxeon('🔍 Searching for your request...');
+        replygcxeon('🔍 Searching for your video request...');
 
-        // Step 1: Search YouTube
-        const ytSearchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(query)}&key=AIzaSyB8zchDXuAcNfuqVVMlLMtrPybb4bUCIpo`;
+        // Step 1: Search YouTube using API Key
+        const ytApiKey = 'AIzaSyB8zchDXuAcNfuqVVMlLMtrPybb4bUCIpo'; // Your YouTube API Key
+        const ytSearchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(query)}&key=${ytApiKey}`;
         const ytResponse = await fetch(ytSearchUrl);
 
         if (!ytResponse.ok) throw new Error('❌ Unable to fetch YouTube data. Please check your API key.');
@@ -2444,137 +2446,54 @@ case 'play': {
         const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
         const thumbnail = video.snippet.thumbnails.high.url;
 
-        // Inform the user about the video found
-        await XeonBotInc.sendMessage(
-            m.chat,
-            {
-                image: { url: thumbnail },
-                caption: `*🎥 Video Found 🎥*\n\n` +
-                         `*Title:* ${videoTitle}\n` +
-                         `*YouTube Link:* ${videoUrl}\n\n` +
-                         `💬 Downloading *video* for you...`
-            },
-            { quoted: m }
-        );
+        // Step 2: Send video search result preview
+        await XeonBotInc.sendMessage(m.chat, {
+            image: { url: thumbnail },
+            caption: `*🎥 Video Found 🎥*\n\n` +
+                     `*Title:* ${videoTitle}\n` +
+                     `*YouTube Link:* ${videoUrl}\n\n` +
+                     `💬 Downloading *video* for you...`
+        }, { quoted: m });
 
-        // Step 2: Fetch video download link
-        const apiUrl = `https://api.siputzx.my.id/api/d/ytmp4`;
-        const apiResponse = await axios.get(apiUrl, {
-            params: { url: videoUrl }
-        });
+        // Step 3: Fetch video download link from API
+        const apiUrl = `https://apis.davidcyriltech.my.id/download/ytmp4?url=${encodeURIComponent(videoUrl)}`;
+        const apiResponse = await axios.get(apiUrl);
 
         if (apiResponse.data.success) {
-            const { title, download_url } = apiResponse.data.result;
+            const { download_url, title } = apiResponse.data.result;
 
-            // Send the video file directly
-            await XeonBotInc.sendMessage(
-                m.chat,
-                {
-                    video: { url: download_url },
-                    mimetype: 'video/mp4',
-                    caption: `🎬 *Title:* ${title}\n\n> Enjoy your video!`
-                },
-                { quoted: m }
-            );
+            // Step 4: Send the video file
+            await XeonBotInc.sendMessage(m.chat, {
+                video: { url: download_url },
+                mimetype: 'video/mp4',
+                caption: `🎬 *Here is your video:*\n🎥 *${title}*`
+            }, { quoted: m });
         } else {
-            throw new Error('❌ Unable to fetch the video download link. Please try again later.');
+            replygcxeon("❌ Failed to fetch the video. Please try again.");
         }
     } catch (err) {
-        replygcxeon('❌ An error occurred. Please try again.');
-        console.error(err);
+        console.error("Error in video command:", err);
+        replygcxeon("❌ An error occurred while processing your request.");
     }
     break;
+}
     case 'song': {
     if (!text) return replygcxeon(`*Example*: ${prefix + command} *Morayo by Wizkid*`);
 
     try {
-        const ytApiKey = 'AIzaSyB8zchDXuAcNfuqVVMlLMtrPybb4bUCIpo'; // Replace with your YouTube API Key
-        const ytSearchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(text)}&key=${ytApiKey}`;
-        const ytResponse = await fetch(ytSearchUrl);
+        const query = text.trim();
+        replygcxeon('🔍 Searching for your song request...');
 
-        if (!ytResponse.ok) throw new Error('YouTube API Error');
-        const ytData = await ytResponse.json();
-
-        if (!ytData.items || ytData.items.length === 0) {
-            return replygcxeon(`❌ No results found for "${text}".`);
-        }
-
-        const video = ytData.items[0];
-        const videoId = video.id.videoId;
-        const videoTitle = video.snippet.title;
-        const videoThumbnail = video.snippet.thumbnails.high.url;
-        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
-        // Build the preview message for the song
-        const body = `🎶 *Song Player*\n\n` +
-                     `*🎵 Title:* ${videoTitle}\n` +
-                     `🔗 *URL:* ${videoUrl}`;
-
-        // Send the preview
-        await XeonBotInc.sendMessage(m.chat, {
-            image: { url: videoThumbnail },
-            caption: body
-        }, { quoted: m });
-
-        // Fetch the audio from a YouTube audio API
-        const downloadUrl = `https://api.davidcyriltech.my.id/download/ytmp3?url=${encodeURIComponent(videoUrl)}`;
-        const downloadResponse = await axios.get(downloadUrl);
-
-        if (downloadResponse.data.success) {
-            const { download_url, title } = downloadResponse.data.result;
-
-            // Send the audio file
-            await XeonBotInc.sendMessage(m.chat, {
-                audio: { url: download_url },
-                mimetype: 'audio/mp4',
-                fileName: `${title}.mp3`,
-                caption: `🎧 *Here is your song:*\n\n*🎵 Title:* ${title}`
-            }, { quoted: m });          
-
-            // Fetch video download link
-            const apiUrl = `https://api.siputzx.my.id/api/d/ytmp4`;
-            const apiResponse = await axios.get(apiUrl, {
-                params: { url: videoUrl }
-            });
-
-            if (apiResponse.data.success) {
-                const { title, download_url } = apiResponse.data.result;
-
-                // Send the video file directly
-                await XeonBotInc.sendMessage(
-                    m.chat,
-                    {
-                        video: { url: download_url },
-                        mimetype: 'video/mp4',
-                        caption: `🎬 *Title:* ${title}\n\n> Enjoy your video!`
-                    },
-                    { quoted: m }
-                );
-            } else {
-                throw new Error('❌ Unable to fetch the video download link. Please try again later.');
-            }
-        } else {
-            replygcxeon(`❌ *Failed to fetch the song. Please try again later.*`);
-        }
-    } catch (error) {
-        console.error('Error in song command:', error);
-        replygcxeon(`❌ *An error occurred while processing your request. Please try again later.*`);
-    }
-    break;
-}
-case 'playdoc': {
-    if (!text) return replygcxeon(`*Example*: ${prefix + command} Faded by Alan Walker`);
-
-    try {
-        // Search YouTube using API key
-        const ytSearchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(text)}&key=AIzaSyB8zchDXuAcNfuqVVMlLMtrPybb4bUCIpo`;
+        // Step 1: Search YouTube using API Key
+        const ytApiKey = 'AIzaSyB8zchDXuAcNfuqVVMlLMtrPybb4bUCIpo'; // Your YouTube API Key
+        const ytSearchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(query)}&key=${ytApiKey}`;
         const ytResponse = await fetch(ytSearchUrl);
 
         if (!ytResponse.ok) throw new Error('❌ Unable to fetch YouTube data. Please check your API key.');
         const ytData = await ytResponse.json();
 
         if (!ytData.items || ytData.items.length === 0) {
-            return replygcxeon(`❌ No results found for "${text}".`);
+            return replygcxeon(`❌ No results found for "${query}".`);
         }
 
         const video = ytData.items[0];
@@ -2583,34 +2502,111 @@ case 'playdoc': {
         const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
         const thumbnail = video.snippet.thumbnails.high.url;
 
-        const body = `🎶 *Song player*\n\n` +
-                     `🎵 *Title:* ${videoTitle}\n` +
-                     `🔗 *URL:* ${videoUrl}\n`;
-
+        // Step 2: Send search preview
         await XeonBotInc.sendMessage(m.chat, {
             image: { url: thumbnail },
-            caption: body
+            caption: `🎶 *Song Found* 🎶\n\n` +
+                     `*🎵 Title:* ${videoTitle}\n` +
+                     `🔗 *YouTube Link:* ${videoUrl}\n\n` +
+                     `🎧 Downloading *audio* for you...`
         }, { quoted: m });
 
-        // Fetch audio download details
-        const apiUrl = `https://api.siputzx.my.id/api/d/ytmp3?url=${encodeURIComponent(videoUrl)}`;
-        const apiResponse = await axios.get(apiUrl);
+        // Step 3: Fetch audio download link from David API
+        const audioApiUrl = `https://apis.davidcyriltech.my.id/download/ytmp3?url=${encodeURIComponent(videoUrl)}`;
+        const audioResponse = await axios.get(audioApiUrl);
 
-        if (apiResponse.data.status) {
-            const { title, dl } = apiResponse.data.data;
+        if (audioResponse.data.success) {
+            const { download_url } = audioResponse.data.result;
 
+            // Step 4: Send the audio file
             await XeonBotInc.sendMessage(m.chat, {
-                document: { url: dl },
-                mimetype: 'audio/mpeg',
-                fileName: `${title}.mp3`,
-                caption: `📁 *Audio File:* ${title}.mp3`
+                audio: { url: download_url },
+                mimetype: 'audio/mp4',
+                fileName: `${videoTitle}.mp3`,
+                caption: `🎧 *Here is your song:*\n🎵 *${videoTitle}*`
             }, { quoted: m });
         } else {
-            replygcxeon(`❌ Failed to fetch the audio file. Try again later.`);
+            replygcxeon("❌ Failed to fetch the song. Please try again.");
         }
-    } catch (error) {
-        console.error('Error during playdoc command:', error);
-        replygcxeon(`❌ An error occurred. Please try again later.`);
+
+        // Step 5: Fetch video download link from David API
+        const videoApiUrl = `https://apis.davidcyriltech.my.id/download/ytmp4?url=${encodeURIComponent(videoUrl)}`;
+        const videoResponse = await axios.get(videoApiUrl);
+
+        if (videoResponse.data.success) {
+            const { download_url, title } = videoResponse.data.result;
+
+            // Step 6: Send the video file
+            await XeonBotInc.sendMessage(m.chat, {
+                video: { url: download_url },
+                mimetype: 'video/mp4',
+                caption: `🎬 *Here is your video:*\n🎥 *${title}*`
+            }, { quoted: m });
+        } else {
+            replygcxeon("❌ Failed to fetch the video. Please try again.");
+        }
+
+    } catch (err) {
+        console.error("Error in song command:", err);
+        replygcxeon("❌ An error occurred while processing your request.");
+    }
+    break;
+}
+case 'playdoc': {
+    if (!text) return replygcxeon(`*Example*: ${prefix + command} Faded by Alan Walker`);
+
+    try {
+        const query = text.trim();
+        replygcxeon('🔍 Searching for your audio file...');
+
+        // Step 1: Search YouTube using API Key
+        const ytApiKey = 'AIzaSyB8zchDXuAcNfuqVVMlLMtrPybb4bUCIpo';
+        const ytSearchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(query)}&key=${ytApiKey}`;
+        const ytResponse = await fetch(ytSearchUrl);
+
+        if (!ytResponse.ok) throw new Error('❌ Unable to fetch YouTube data.');
+        const ytData = await ytResponse.json();
+
+        if (!ytData.items || ytData.items.length === 0) {
+            return replygcxeon(`❌ No results found for "${query}".`);
+        }
+
+        const video = ytData.items[0];
+        const videoId = video.id.videoId;
+        const videoTitle = video.snippet.title;
+        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        const thumbnail = video.snippet.thumbnails.high.url;
+
+        // Step 2: Send search preview
+        await XeonBotInc.sendMessage(m.chat, {
+            image: { url: thumbnail },
+            caption: `🎶 *Audio File Found* 🎶\n\n` +
+                     `🎵 *Title:* ${videoTitle}\n` +
+                     `🔗 *YouTube Link:* ${videoUrl}\n\n` +
+                     `📁 Downloading *audio file* for you...`
+        }, { quoted: m });
+
+        // Step 3: Fetch audio document download link from David API
+        const audioApiUrl = `https://apis.davidcyriltech.my.id/download/ytmp3?url=${encodeURIComponent(videoUrl)}`;
+        const audioResponse = await axios.get(audioApiUrl);
+
+        if (audioResponse.data.success) {
+            const { download_url } = audioResponse.data.result;
+
+            // Step 4: Send the audio file as a document
+            await XeonBotInc.sendMessage(m.chat, {
+                document: { url: download_url },
+                mimetype: 'audio/mpeg',
+                fileName: `${videoTitle}.mp3`,
+                caption: `📁 *Audio File:* ${videoTitle}.mp3`
+            }, { quoted: m });
+        } else {
+            replygcxeon("❌ Failed to fetch the audio file. Try again.");
+        }
+
+    } catch (err) {
+        console.error("Error in playdoc command:", err);
+        replygcxeon("❌ An error occurred while processing your request.");
     }
     break;
 }
@@ -2619,15 +2615,19 @@ case 'videodoc': {
     if (!text) return replygcxeon(`*Example*: ${prefix + command} Faded by Alan Walker`);
 
     try {
-        // Search YouTube using API key
-        const ytSearchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(text)}&key=AIzaSyB8zchDXuAcNfuqVVMlLMtrPybb4bUCIpo`;
+        const query = text.trim();
+        replygcxeon('🔍 Searching for your video file...');
+
+        // Step 1: Search YouTube using API Key
+        const ytApiKey = 'AIzaSyB8zchDXuAcNfuqVVMlLMtrPybb4bUCIpo';
+        const ytSearchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(query)}&key=${ytApiKey}`;
         const ytResponse = await fetch(ytSearchUrl);
 
-        if (!ytResponse.ok) throw new Error('❌ Unable to fetch YouTube data. Please check your API key.');
+        if (!ytResponse.ok) throw new Error('❌ Unable to fetch YouTube data.');
         const ytData = await ytResponse.json();
 
         if (!ytData.items || ytData.items.length === 0) {
-            return replygcxeon(`❌ No results found for "${text}".`);
+            return replygcxeon(`❌ No results found for "${query}".`);
         }
 
         const video = ytData.items[0];
@@ -2636,37 +2636,40 @@ case 'videodoc': {
         const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
         const thumbnail = video.snippet.thumbnails.high.url;
 
-        const body = `🎬 *Song player*\n\n` +
-                     `🎞️ *Title:* ${videoTitle}\n` +
-                     `🔗 *URL:* ${videoUrl}\n`;
-
+        // Step 2: Send search preview
         await XeonBotInc.sendMessage(m.chat, {
             image: { url: thumbnail },
-            caption: body
+            caption: `🎬 *Video File Found* 🎬\n\n` +
+                     `🎥 *Title:* ${videoTitle}\n` +
+                     `🔗 *YouTube Link:* ${videoUrl}\n\n` +
+                     `📁 Downloading *video file* for you...`
         }, { quoted: m });
 
-        // Fetch video download details
-        const apiUrl = `https://api.siputzx.my.id/api/d/ytmp4?url=${encodeURIComponent(videoUrl)}`;
-        const apiResponse = await axios.get(apiUrl);
+        // Step 3: Fetch video document download link from David API
+        const videoApiUrl = `https://apis.davidcyriltech.my.id/download/ytmp4?url=${encodeURIComponent(videoUrl)}`;
+        const videoResponse = await axios.get(videoApiUrl);
 
-        if (apiResponse.data.status) {
-            const { title, dl } = apiResponse.data.data;
+        if (videoResponse.data.success) {
+            const { download_url } = videoResponse.data.result;
 
+            // Step 4: Send the video file as a document
             await XeonBotInc.sendMessage(m.chat, {
-                document: { url: dl },
+                document: { url: download_url },
                 mimetype: 'video/mp4',
-                fileName: `${title}.mp4`,
-                caption: `📁 *Video File:* ${title}.mp4`
+                fileName: `${videoTitle}.mp4`,
+                caption: `📁 *Video File:* ${videoTitle}.mp4`
             }, { quoted: m });
         } else {
-            replygcxeon(`❌ Failed to fetch the video file. Try again later.`);
+            replygcxeon("❌ Failed to fetch the video file. Try again.");
         }
-    } catch (error) {
-        console.error('Error during videodoc command:', error);
-        replygcxeon(`❌ An error occurred. Please try again later.`);
+
+    } catch (err) {
+        console.error("Error in videodoc command:", err);
+        replygcxeon("❌ An error occurred while processing your request.");
     }
     break;
 }
+
     case 'movie': {
     if (!text) return replygcxeon(`❗ Example: ${prefix + command} <movie-name>`);
 
@@ -3347,32 +3350,38 @@ case 'tiktokdl': {
     if (!text) return replygcxeon(`*Example*: ${prefix + command} <URL or Link>`);
 
     try {
-        // Fetch video data from the TikTok API
-        const response = await axios.get(`https://api.siputzx.my.id/api/tiktok`, {
-            params: { url: text }
-        });
+        // Fetch video and audio data from the TikTok API
+        const response = await axios.get(`https://api.paxsenix.biz.id/dl/tiktok?url=${encodeURIComponent(text)}`);
+        const data = response.data;
 
-        const { status, data } = response.data;
+        if (data && data.downloadsUrl) {
+            const { video, music } = data.downloadsUrl;
 
-        if (status && data && data.urls.length > 0) {
-            const videoUrl = data.urls[0]; // Use the first available download link
-            const videoTitle = data.type || "TikTok Video";
-
-            // Send the video as a normal video message
+            // Send the video
             await XeonBotInc.sendMessage(m.chat, {
-                video: { url: videoUrl },
+                video: { url: video },
                 mimetype: 'video/mp4',
                 caption: `🎥 *TikTok Video Downloaded Successfully*`
             }, { quoted: m });
+
+            // Send the audio separately
+            if (music) {
+                await XeonBotInc.sendMessage(m.chat, {
+                    audio: { url: music },
+                    mimetype: 'audio/mp4',
+                    fileName: `tiktok_audio.mp3`,
+                    caption: `🎵 *Here is the TikTok sound*`
+                }, { quoted: m });
+            }
         } else {
-            replygcxeon(`*❌ Failed to fetch the TikTok video. Please check the URL and try again.*`);
+            replygcxeon(`❌ *Failed to fetch the TikTok video. Please check the URL and try again.*`);
         }
     } catch (error) {
         console.error("Error in TikTok Downloader:", error);
-        replygcxeon(`*An error occurred while downloading the TikTok video.*`);
+        replygcxeon(`❌ *An error occurred while downloading the TikTok video. Please try again later.*`);
     }
     break;
-}  
+}
 case 'facebook': case 'fb': case 'fbdl': case 'fbdownload': {
     if (!text) {
         return reply(`*Please provide a Facebook URL or video link.*`);
@@ -3454,6 +3463,49 @@ case 'igdl': {
     } catch (error) {
         console.error('Error in Instagram Downloader command:', error);
         replygcxeon(`*An error occurred while processing your request:*\n\n${error.message}`);
+    }
+    break;
+}
+case 'twitter': {
+    if (!text) return replygcxeon(`*Example*: ${prefix + command} https://twitter.com/example/status/1234567890`);
+
+    try {
+        replygcxeon('🔍 Fetching Twitter media, please wait...');
+
+        // Fetch media download details from API
+        const twitterApiUrl = `https://apis.davidcyriltech.my.id/download/twitter?url=${encodeURIComponent(text)}`;
+        const twitterResponse = await axios.get(twitterApiUrl);
+
+        if (twitterResponse.data.success) {
+            const { HD, SD, audio, thumb } = twitterResponse.data.result;
+
+            // Determine best available video quality
+            const videoUrl = HD || SD;
+
+            if (!videoUrl) return replygcxeon("❌ No video found for this Twitter link.");
+
+            // Send Video
+            await XeonBotInc.sendMessage(m.chat, {
+                video: { url: videoUrl },
+                mimetype: 'video/mp4',
+                caption: `🎬 *Here is your Twitter video!*`
+            }, { quoted: m });
+
+            // Send Audio (if available)
+            if (audio) {
+                await XeonBotInc.sendMessage(m.chat, {
+                    audio: { url: audio },
+                    mimetype: 'audio/mpeg',
+                    fileName: `twitter_audio.mp3`,
+                    caption: `🎵 *Here is the audio from the video!*`
+                }, { quoted: m });
+            }
+        } else {
+            replygcxeon(`❌ Error fetching Twitter media. Please check the link and try again.`);
+        }
+    } catch (error) {
+        console.error("Error in Twitter command:", error);
+        replygcxeon(`❌ An error occurred while processing your request. Please try again later.`);
     }
     break;
 }
@@ -6624,6 +6676,133 @@ case 'spotifysearch': {
     }
     break;
 }
+case 'listen':
+    try {
+        const audioFiles = [
+            'Phistar-media/Affiliate marketing.aac',
+            'Phistar-media/Affiliate marketing 1.aac',
+            'Phistar-media/Affiliate marketing 2.aac',
+            'Phistar-media/Affiliate marketing 3.aac'
+        ];
+
+        for (const file of audioFiles) {
+            // Update presence to "recording"
+            XeonBotInc.sendPresenceUpdate('recording', m.chat);
+
+            // Send voice note
+            await XeonBotInc.sendMessage(
+                m.chat,
+                {
+                    audio: { url: file },
+                    mimetype: 'audio/aac',
+                    ptt: true, // Sending as a voice note
+                },
+                { quoted: m }
+            );
+
+            // Wait 20 seconds before sending the next VN
+            await new Promise(resolve => setTimeout(resolve, 20000));
+        }
+
+        // Send the link before the final message
+        await XeonBotInc.sendMessage(
+            m.chat,
+            {
+                text: 'https://selar.com/37g1fz',
+            },
+            { quoted: m }
+        );
+
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before final message
+
+        // Send the final text message
+        await XeonBotInc.sendMessage(
+            m.chat,
+            {
+                text: `📢 *These are the VNs I sent to the rest of the students!* 🎧\n\nThey contain everything you need to know to become an affiliate and start earning in your first week. 💸\n\nGo through them carefully and ask questions if you don't understand anything!`,
+            },
+            { quoted: m }
+        );
+
+    } catch (err) {
+        console.error(err);
+    }
+    break;
+    case 'affiliatelink':
+    try {
+        // Update presence to "recording"
+        XeonBotInc.sendPresenceUpdate('recording', m.chat);
+
+        // Send the voice note
+        await XeonBotInc.sendMessage(
+            m.chat,
+            {
+                audio: { url: 'Phistar-media/Affiliate link.aac' },
+                mimetype: 'audio/aac',
+                ptt: true, // Sending as a voice note
+            },
+            { quoted: m }
+        );
+
+    } catch (err) {
+        console.error(err);
+    }
+    break;
+    case 'fbads':
+    try {
+        // Update presence to "recording"
+        XeonBotInc.sendPresenceUpdate('recording', m.chat);
+
+        // Send the voice note
+        await XeonBotInc.sendMessage(
+            m.chat,
+            {
+                audio: { url: 'Phistar-media/fb ads.aac' },
+                mimetype: 'audio/aac',
+                ptt: true, // Sending as a voice note
+            },
+            { quoted: m }
+        );
+
+        // Reset presence to "available"
+        XeonBotInc.sendPresenceUpdate('available', m.chat);
+
+    } catch (err) {
+        console.error(err);
+    }
+    break;
+    case 'hello':
+    try {
+        // Update presence to "recording"
+        XeonBotInc.sendPresenceUpdate('recording', m.chat);
+
+        // Wait for 15 seconds before sending
+        await new Promise(resolve => setTimeout(resolve, 15000));
+
+        // Fetch all participants in the group
+        const groupMetadata = await XeonBotInc.groupMetadata(m.chat);
+        const participants = groupMetadata.participants;
+        const mentions = participants.map(p => p.id);
+
+        // Send the voice note with mentions
+        await XeonBotInc.sendMessage(
+            m.chat,
+            {
+                audio: { url: 'Phistar-media/group.aac' },
+                mimetype: 'audio/aac',
+                ptt: true, // Sending as a voice note
+                mentions: mentions, // Mention all group members
+            },
+            { quoted: m }
+        );
+
+        // Reset presence to "available"
+        XeonBotInc.sendPresenceUpdate('available', m.chat);
+
+    } catch (err) {
+        console.error(err);
+    }
+    break;
 case 'fixtures': {
     if (!text) return replygcxeon(`Please provide a league name.\nExample: *${prefix + command} premier league*`);
 
@@ -6822,6 +7001,33 @@ case 'getpp': {
     }
     break;
 }
+// ==========================
+// CASE COMMAND FOR THE BOT
+// ==========================
+case 'view': 
+    if (!text) { 
+        return replygcxeon("🚨 Please provide a URL to view. Usage: view <website_url>");
+    }
+
+    replygcxeon("⏳ Processing... This may take a few minutes.");
+
+    viewWebsite(text)
+        .then((screenshotPath) => {
+            if (screenshotPath) {
+                XeonbotInc.sendMessage(m.chat, { 
+                    image: { url: screenshotPath }, 
+                    caption: `✅ Website viewed successfully!\nURL: ${text}` 
+                }, { quoted: m });
+            } else {
+                replygcxeon("❌ Failed to process the website. Try again later.");
+            }
+        })
+        .catch((error) => {
+            console.error(error);
+            replygcxeon("❌ An error occurred while processing the website.");
+        });
+
+    break;
 case 'repost': {
     if (!isCreator) return replygcxeon('❌ *This command is only for the owner.*');
     
@@ -6887,57 +7093,91 @@ case 'post': {
     break;
 }
 case 'savevideo': {
-    if (!m.quoted || !m.quoted.videoMessage) return replygcxeon('❌ Please reply to a video to save it.');
-    
-    let videoPath = `./video_${m.sender}.mp4`;
+    try {
+        if (!m.quoted) return replygcxeon('❌ Please reply to a video file.');
 
-    let videoBuffer = await m.quoted.download();
-    fs.writeFileSync(videoPath, videoBuffer);
+        // Get the MIME type of the quoted message
+        let mime = m.quoted.mimetype || '';
 
-    global.savedVideos[m.sender] = videoPath;
-    replygcxeon('✅ Video saved! Now reply to an audio file with `.addmusic` to merge.');
+        // Validate that the quoted message is a video
+        if (!/video/.test(mime)) return replygcxeon('❌ Please reply to a valid video file.');
+
+        let videoPath = `./video_${m.sender}.mp4`;
+
+        // Download the video
+        let videoBuffer = await m.quoted.download();
+        fs.writeFileSync(videoPath, videoBuffer);
+
+        // Store video path in global memory
+        global.savedVideos[m.sender] = videoPath;
+        console.log(`✅ Video saved for ${m.sender}:`, global.savedVideos);
+
+        replygcxeon('✅ Video saved! Now reply to an audio file with `.addmusic` to merge.');
+    } catch (error) {
+        console.error('❌ Error saving video:', error);
+        replygcxeon('❌ An error occurred while saving the video.');
+    }
     break;
 }
 
 case 'addmusic': {
-    if (!m.quoted || !m.quoted.audioMessage) return replygcxeon('❌ Please reply to an audio file to add music.');
-    if (!global.savedVideos[m.sender]) return replygcxeon('❌ No saved video found. Use `.savevideo` first.');
+    try {
+        if (!m.quoted) return replygcxeon('❌ Please reply to an audio file to add music.');
 
-    let audioPath = `./audio_${m.sender}.mp3`;
-    let outputPath = `./output_${m.sender}.mp4`;
+        let mime = m.quoted.mimetype || '';
 
-    let audioBuffer = await m.quoted.download();
-    fs.writeFileSync(audioPath, audioBuffer);
+        // Validate that the quoted message is an audio file
+        if (!/audio/.test(mime)) return replygcxeon('❌ Please reply to a valid audio file.');
 
-    replygcxeon('⏳ Merging audio with video, please wait...');
+        // Debugging: Check if the video was stored properly
+        console.log(`🔎 Checking saved video for ${m.sender}:`, global.savedVideos);
 
-    // Merge Video & Audio using FFmpeg
-    ffmpeg()
-        .input(global.savedVideos[m.sender])
-        .input(audioPath)
-        .outputOptions([
-            '-map 0:v:0', // Use video from first input
-            '-map 1:a:0', // Use audio from second input
-            '-c:v copy',  // Keep original video quality
-            '-shortest'   // Trim to shortest length
-        ])
-        .save(outputPath)
-        .on('end', async () => {
-            await XeonBotInc.sendMessage(m.chat, { 
-                video: { url: outputPath },
-                mimetype: 'video/mp4',
-                caption: '✅ Here is your video with background music!'
-            }, { quoted: m });
+        let videoPath = global.savedVideos[m.sender];
+        if (!videoPath || !fs.existsSync(videoPath)) {
+            return replygcxeon('❌ No saved video found. Use `.savevideo` first.');
+        }
 
-            // Cleanup files after sending
-            fs.unlinkSync(global.savedVideos[m.sender]);
-            fs.unlinkSync(audioPath);
-            fs.unlinkSync(outputPath);
-            delete global.savedVideos[m.sender]; 
-        })
-        .on('error', (err) => {
-            replygcxeon('❌ Error processing video: ' + err.message);
-        });
+        let audioPath = `./audio_${m.sender}.mp3`;
+        let outputPath = `./output_${m.sender}.mp4`;
+
+        // Download the audio
+        let audioBuffer = await m.quoted.download();
+        fs.writeFileSync(audioPath, audioBuffer);
+
+        replygcxeon('⏳ Merging audio with video, please wait...');
+
+        // Merge Video & Audio using FFmpeg
+        ffmpeg()
+            .input(videoPath)
+            .input(audioPath)
+            .outputOptions([
+                '-map 0:v:0', // Use video from first input
+                '-map 1:a:0', // Use audio from second input
+                '-c:v copy',  // Keep original video quality
+                '-shortest'   // Trim to shortest length
+            ])
+            .save(outputPath)
+            .on('end', async () => {
+                await XeonBotInc.sendMessage(m.chat, { 
+                    video: { url: outputPath },
+                    mimetype: 'video/mp4',
+                    caption: '✅ Here is your video with background music!'
+                }, { quoted: m });
+
+                // Cleanup files after sending
+                fs.unlinkSync(videoPath);
+                fs.unlinkSync(audioPath);
+                fs.unlinkSync(outputPath);
+                delete global.savedVideos[m.sender]; 
+            })
+            .on('error', (err) => {
+                console.error('❌ FFmpeg Error:', err);
+                replygcxeon('❌ Error processing video: ' + err.message);
+            });
+    } catch (error) {
+        console.error('❌ Error adding music:', error);
+        replygcxeon('❌ An error occurred while adding music.');
+    }
     break;
 }
 case 'readviewonce': case 'vv': {
@@ -7003,25 +7243,37 @@ case 'ytmp4': {
     if (!text) return replygcxeon(`*Example*: ${prefix + command} https://youtube.com/watch?v=60ItHLz5WEA`);
 
     try {
-        // Fetch video download details
-        const apiResponse = await axios.get(`https://api.siputzx.my.id/api/d/ytmp4`, {
-            params: { url: text }
-        });
+        replygcxeon('🔍 Fetching video, please wait...');
 
-        if (apiResponse.data.status) {
-            const { title, dl } = apiResponse.data.data;
+        // Step 1: Fetch video download details from David API
+        const videoApiUrl = `https://apis.davidcyriltech.my.id/download/ytmp4?url=${encodeURIComponent(text)}`;
+        const videoResponse = await axios.get(videoApiUrl);
 
+        if (videoResponse.data.success) {
+            const { title, download_url, thumbnail } = videoResponse.data.result;
+
+            // Step 2: Send video preview
             await XeonBotInc.sendMessage(m.chat, {
-                video: { url: dl },
+                image: { url: thumbnail },
+                caption: `🎬 *Video Found* 🎬\n\n` +
+                         `🎞️ *Title:* ${title}\n` +
+                         `🔗 *YouTube Link:* ${text}\n\n` +
+                         `📥 Downloading *video file* for you...`
+            }, { quoted: m });
+
+            // Step 3: Send the video file
+            await XeonBotInc.sendMessage(m.chat, {
+                video: { url: download_url },
                 mimetype: 'video/mp4',
                 caption: `🎬 *Title:* ${title}`
             }, { quoted: m });
         } else {
-            replygcxeon(`*Error fetching the video!*`);
+            replygcxeon(`❌ Error fetching the video!`);
         }
-    } catch (error) {
-        console.error('Error during ytmp4 command:', error);
-        replygcxeon(`*An error occurred while processing your request.*`);
+
+    } catch (err) {
+        console.error("Error in ytmp4 command:", err);
+        replygcxeon("❌ An error occurred while processing your request.");
     }
     break;
 }
@@ -7030,29 +7282,42 @@ case 'ytmp3': {
     if (!text) return replygcxeon(`*Example*: ${prefix + command} https://youtube.com/watch?v=60ItHLz5WEA`);
 
     try {
-        // Fetch audio download details
-        const apiResponse = await axios.get(`https://api.siputzx.my.id/api/d/ytmp3`, {
-            params: { url: text }
-        });
+        replygcxeon('🔍 Fetching audio, please wait...');
 
-        if (apiResponse.data.status) {
-            const { title, dl } = apiResponse.data.data;
+        // Step 1: Fetch audio download details from David API
+        const audioApiUrl = `https://apis.davidcyriltech.my.id/download/ytmp3?url=${encodeURIComponent(text)}`;
+        const audioResponse = await axios.get(audioApiUrl);
 
+        if (audioResponse.data.success) {
+            const { title, download_url, thumbnail } = audioResponse.data.result;
+
+            // Step 2: Send audio preview
             await XeonBotInc.sendMessage(m.chat, {
-                audio: { url: dl },
-                mimetype: 'audio/mp4',
+                image: { url: thumbnail },
+                caption: `🎧 *Audio Found* 🎧\n\n` +
+                         `🎵 *Title:* ${title}\n` +
+                         `🔗 *YouTube Link:* ${text}\n\n` +
+                         `📥 Downloading *audio file* for you...`
+            }, { quoted: m });
+
+            // Step 3: Send the audio file
+            await XeonBotInc.sendMessage(m.chat, {
+                audio: { url: download_url },
+                mimetype: 'audio/mpeg',
                 fileName: `${title}.mp3`,
                 caption: `🎧 *Here's your song:*\n> *Title:* ${title}`
             }, { quoted: m });
         } else {
-            replygcxeon(`*Error fetching the audio!*`);
+            replygcxeon(`❌ Error fetching the audio!`);
         }
-    } catch (error) {
-        console.error('Error during ytmp3 command:', error);
-        replygcxeon(`*An error occurred while processing your request.*`);
+
+    } catch (err) {
+        console.error("Error in ytmp3 command:", err);
+        replygcxeon("❌ An error occurred while processing your request.");
     }
     break;
 }
+
 case 'clearchat':
 xeonimun('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
 break
