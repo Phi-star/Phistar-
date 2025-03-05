@@ -24,8 +24,7 @@ const { smsg, getGroupAdmins, formatp, jam, formatDate, getTime, isUrl, await, s
 let afk = require("./lib/afk");
 const { addPremiumUser, getPremiumExpired, getPremiumPosition, expiredCheck, checkPremiumUser, getAllPremiumUser } = require('./lib/premiun')
 const { fetchBuffer, buffergif } = require("./lib/myfunc2")
-const tempMailData = {};
-const NodeCache = require('node-cache');
+const tempMailData = {}; 
 const settings = require('./phistarbot.js'); // Import settings
 //bug database 
 var wkwk = fs.readFileSync(`./16/p.mp3`)
