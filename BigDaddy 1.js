@@ -160,8 +160,6 @@ if (m.isGroup && antilinkGroups.includes(m.chat)) {
         // await XeonBotInc.groupParticipantsUpdate(m.chat, [m.sender], 'remove');
     }
 }
-// Use your bot's message handling logic to respond to user questions.       
-//group chat msg by xeon
 const replygcxeon = (teks) => {
     XeonBotInc.sendMessage(m.chat, {
         text: teks,
@@ -169,16 +167,20 @@ const replygcxeon = (teks) => {
             mentionedJid: [sender],
             forwardingScore: 9999999,
             isForwarded: true,
-            "externalAdReply": {
-                "showAdAttribution": true,
-                "containsAutoReply": true,
-                "title": `VIEW CHANNEL`, // Changed title to VIEWCHANNEL
-                "body": `CLICK HERE TO VIEW CHANNEL`, // Changed body to CLICK HERE TO VIEWCHANNEL
-                "previewType": "PHOTO",
-                "thumbnailUrl": 'https://my-channel.onrender.com/your-image.jpg', // Thumbnail link
-                "sourceUrl": `https://whatsapp.com/channel/0029VagdMGd6LwHms3wqEm0m`,
-                "mediaType": 1,
-                "renderLargerThumbnail": true // Makes the image big like in the menu
+            forwardedNewsletterMessageInfo: {
+                newsletterName: "ᴘʜ✦ꜱᴛᴀʀ",
+                newsletterJid: "120363303946948716@newsletter", // Updated JID
+            },
+            externalAdReply: {
+                showAdAttribution: true,
+                containsAutoReply: true,
+                title: `${global.botname}`,
+                body: `${ownername}`,
+                previewType: "PHOTO",
+                thumbnailUrl: "",
+                thumbnail: fs.readFileSync(`./Phistar-media/phistar.jpg`),
+                mediaUrl: `${link}`,
+                sourceUrl: `${link}`
             }
         }
     }, { quoted: m });
@@ -4544,7 +4546,6 @@ if (!isCreator) return replygcxeon(mess.owner);
                         replygcxeon(`BIG DADDY has Successful Reset, Group Invite Link ${groupMetadata.subject}`)
                     }).catch((err) => replygcxeon(json(err)))
                 break
-case 'p':
 case 'ping': {
     const used = process.memoryUsage();
     const cpus = os.cpus();
@@ -4560,16 +4561,8 @@ case 'ping': {
     const latency = (performance.now() - speed()).toFixed(4);  
     const ramUsage = formatp(os.totalmem() - os.freemem()) + ' / ' + formatp(os.totalmem());
 
-    const cpuUsage = Object.keys(cpu.times).map(type => {
-        return `- *${type.padEnd(6)}: ${(100 * cpu.times[type] / cpu.total).toFixed(2)}%`;
-    }).join('\n');
-
-    const cpuDetails = cpus.map((cpu, i) => {
-        return `${i + 1}. ${cpu.model.trim()} (${cpu.speed} MHz)\n${cpuUsage}`;
-    }).join('\n\n');
-
     const response = `
-*Pong!* 🏓
+  *Pong!* 🏓
 > *Response Speed:* *${latency}* seconds
 
 > *💻 BIG DADDY V1* Server Info
@@ -4578,81 +4571,104 @@ RAM Usage: *${ramUsage}*`;
     await XeonBotInc.sendMessage(m.chat, {
         text: response,
         contextInfo: {
+            forwardingScore: 9999999,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+                newsletterName: "ᴘʜ✦ꜱᴛᴀʀ",
+                newsletterJid: "120363303946948716@newsletter", // Your Channel JID
+            },
             externalAdReply: {
                 showAdAttribution: true,
-                title: `VIEW CHANNEL`,
-                body: `CLICK HERE TO VIEW CHANNEL`,
-                thumbnailUrl: 'https://my-channel.onrender.com/your-image.jpg',
-                sourceUrl: global.link,
-                mediaType: 1,
-                renderLargerThumbnail: true
+                containsAutoReply: true,
+                title: `BIG DADDY V1`,
+                body: `ᴘʜ✦ꜱᴛᴀʀ`,
+                mediaType: 1, // Forces a Large Image
+                renderLargerThumbnail: true, // Makes the image BIG
+                thumbnail: fs.readFileSync(`./Phistar-media/phistar.jpg`), // Large Image
+                mediaUrl: global.link,
+                sourceUrl: global.link
             }
         }
     }, { quoted: m });
 }
 break;
             case 'buypremium':
-            case 'buyprem':
-            case 'premium': {
-                let teks = `Hey ${pushname}👋\nWant to Buy Premium? Just chat with Philip 😉👉 t.me/phistar1`
-                await XeonBotInc.sendMessage(m.chat, {
-                    text: teks,
-                    contextInfo: {
-                        externalAdReply: {
-                            showAdAttribution: true,
-                            title: `${botname}`,
-                            body: `${ownername}`,
-                            thumbnailUrl: 'https://my-channel.onrender.com/your-image.jpg',
-                          
-                     sourceUrl: global.link,
-                            mediaType: 1,
-                            renderLargerThumbnail: true
-                        }
-                    }
-                }, {
-                    quoted: m
-                })
+case 'buyprem':
+case 'premium': {
+    let teks = `Hey ${pushname}👋\nWant to Buy Premium? Just chat with Philip 😉👉 t.me/phistar1`;
+    await XeonBotInc.sendMessage(m.chat, {
+        text: teks,
+        contextInfo: {
+            forwardingScore: 9999999,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {  
+                newsletterName: "ᴘʜ✦ꜱᴛᴀʀ",  
+                newsletterJid: "120363303946948716@newsletter",  
+            }, 
+            externalAdReply: {
+                showAdAttribution: true,
+                title: `${botname}`,
+                body: `${ownername}`,
+                mediaType: 1,
+                renderLargerThumbnail: true,
+                thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp',
+                sourceUrl: global.link
             }
-            break
-            case 'runtime':
-                let runtimetext = `*Big Daddy V1* 𝐇𝐚𝐯𝐞 𝐛𝐞𝐞𝐧 𝐫𝐮𝐧𝐧𝐢𝐧𝐠 𝐟𝐨𝐫 ${runtime(process.uptime())}` 
-                XeonBotInc.sendMessage(m.chat, {
-                    text: runtimetext,
-                    contextInfo: {
-                        externalAdReply: {
-                            showAdAttribution: true,
-                            title: `${botname}`,
-                            body: `phistar`,
-                            thumbnailUrl: 'https://my-channel.onrender.com/your-image.jpg',
-                            sourceUrl: global.link,
-                            mediaType: 1,
-                            renderLargerThumbnail: true
-                        }
-                    }
-                }, {
-                    quoted: m
-                })
-                break
-            case 'sc':
-            case 'script':
-            case 'scriptbot':
-                XeonBotInc.sendMessage(m.chat, {
-                    text: `click here to download script https://bigdaddyv1.onrender.com`,
-                    contextInfo: {
-                        externalAdReply: {
-                            showAdAttribution: true,
-                            title: `${botname}`,
-                            body: `SCRIPT OF ${botname} is on telegram @phistar`,
-                            thumbnailUrl: 'https://my-channel.onrender.com/your-image.jpg',
-                            sourceUrl: global.link,
-                            mediaType: 1,
-                            renderLargerThumbnail: true
-                        }
-                    }
-                }, {
-                    quoted: m
-                })
-                break
+        }
+    }, { quoted: m });
+}
+break;
+
+case 'runtime': {
+    let runtimetext = `*Big Daddy V1* 𝐇𝐚𝐯𝐞 𝐛𝐞𝐞𝐧 𝐫𝐮𝐧𝐧𝐢𝐧𝐠 𝐟𝐨𝐫 ${runtime(process.uptime())}`;
+    XeonBotInc.sendMessage(m.chat, {
+        text: runtimetext,
+        contextInfo: {
+            forwardingScore: 9999999,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {  
+                newsletterName: "ᴘʜ✦ꜱᴛᴀʀ",  
+                newsletterJid: "120363303946948716@newsletter",  
+            }, 
+            externalAdReply: {
+                showAdAttribution: true,
+                title: `${botname}`,
+                body: `phistar`,
+                mediaType: 1,
+                renderLargerThumbnail: true,
+                thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp',
+                sourceUrl: global.link
+            }
+        }
+    }, { quoted: m });
+}
+break;
+
+case 'sc':
+case 'script':
+case 'scriptbot': {
+    XeonBotInc.sendMessage(m.chat, {
+        text: `Click here to download the script: https://bigdaddyv1.onrender.com`,
+        contextInfo: {
+            forwardingScore: 9999999,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {  
+                newsletterName: "ᴘʜ✦ꜱᴛᴀʀ",  
+                newsletterJid: "120363303946948716@newsletter",  
+            }, 
+            externalAdReply: {
+                showAdAttribution: true,
+                title: `${botname}`,
+                body: `SCRIPT OF ${botname} is on Telegram @phistar`,
+                mediaType: 1,
+                renderLargerThumbnail: true,
+                thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp',
+                sourceUrl: global.link
+            }
+        }
+    }, { quoted: m });
+}
+break;
             case 'donate':
             case 'donasi':
                 let textnate = `Hello Cutie💕 ${pushname}\n\nNo matter how much you donate is very valuable for us❤️`
@@ -6676,133 +6692,7 @@ case 'spotifysearch': {
     }
     break;
 }
-case 'listen':
-    try {
-        const audioFiles = [
-            'Phistar-media/Affiliate marketing.aac',
-            'Phistar-media/Affiliate marketing 1.aac',
-            'Phistar-media/Affiliate marketing 2.aac',
-            'Phistar-media/Affiliate marketing 3.aac'
-        ];
 
-        for (const file of audioFiles) {
-            // Update presence to "recording"
-            XeonBotInc.sendPresenceUpdate('recording', m.chat);
-
-            // Send voice note
-            await XeonBotInc.sendMessage(
-                m.chat,
-                {
-                    audio: { url: file },
-                    mimetype: 'audio/aac',
-                    ptt: true, // Sending as a voice note
-                },
-                { quoted: m }
-            );
-
-            // Wait 20 seconds before sending the next VN
-            await new Promise(resolve => setTimeout(resolve, 20000));
-        }
-
-        // Send the link before the final message
-        await XeonBotInc.sendMessage(
-            m.chat,
-            {
-                text: 'https://selar.com/37g1fz',
-            },
-            { quoted: m }
-        );
-
-        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before final message
-
-        // Send the final text message
-        await XeonBotInc.sendMessage(
-            m.chat,
-            {
-                text: `📢 *These are the VNs I sent to the rest of the students!* 🎧\n\nThey contain everything you need to know to become an affiliate and start earning in your first week. 💸\n\nGo through them carefully and ask questions if you don't understand anything!`,
-            },
-            { quoted: m }
-        );
-
-    } catch (err) {
-        console.error(err);
-    }
-    break;
-    case 'affiliatelink':
-    try {
-        // Update presence to "recording"
-        XeonBotInc.sendPresenceUpdate('recording', m.chat);
-
-        // Send the voice note
-        await XeonBotInc.sendMessage(
-            m.chat,
-            {
-                audio: { url: 'Phistar-media/Affiliate link.aac' },
-                mimetype: 'audio/aac',
-                ptt: true, // Sending as a voice note
-            },
-            { quoted: m }
-        );
-
-    } catch (err) {
-        console.error(err);
-    }
-    break;
-    case 'fbads':
-    try {
-        // Update presence to "recording"
-        XeonBotInc.sendPresenceUpdate('recording', m.chat);
-
-        // Send the voice note
-        await XeonBotInc.sendMessage(
-            m.chat,
-            {
-                audio: { url: 'Phistar-media/fb ads.aac' },
-                mimetype: 'audio/aac',
-                ptt: true, // Sending as a voice note
-            },
-            { quoted: m }
-        );
-
-        // Reset presence to "available"
-        XeonBotInc.sendPresenceUpdate('available', m.chat);
-
-    } catch (err) {
-        console.error(err);
-    }
-    break;
-    case 'hello':
-    try {
-        // Update presence to "recording"
-        XeonBotInc.sendPresenceUpdate('recording', m.chat);
-
-        // Wait for 15 seconds before sending
-        await new Promise(resolve => setTimeout(resolve, 15000));
-
-        // Fetch all participants in the group
-        const groupMetadata = await XeonBotInc.groupMetadata(m.chat);
-        const participants = groupMetadata.participants;
-        const mentions = participants.map(p => p.id);
-
-        // Send the voice note with mentions
-        await XeonBotInc.sendMessage(
-            m.chat,
-            {
-                audio: { url: 'Phistar-media/group.aac' },
-                mimetype: 'audio/aac',
-                ptt: true, // Sending as a voice note
-                mentions: mentions, // Mention all group members
-            },
-            { quoted: m }
-        );
-
-        // Reset presence to "available"
-        XeonBotInc.sendPresenceUpdate('available', m.chat);
-
-    } catch (err) {
-        console.error(err);
-    }
-    break;
 case 'fixtures': {
     if (!text) return replygcxeon(`Please provide a league name.\nExample: *${prefix + command} premier league*`);
 
@@ -7326,7 +7216,7 @@ break
             case 'alive':
             case '?':
             case 'Menu':
-               let xeonmenuoh = `
+               let phistarmenu = `
 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
 ┃  ✨ *Creator: ᴘʜ✦ꜱᴛᴀʀ* 💫
 ┃  🧪 *Version: 1.0.0* 
@@ -7530,98 +7420,88 @@ ${readmore}
 © *ᴘʜ✦ꜱᴛᴀʀ*`
 if (typemenu === 'v1') {
     XeonBotInc.sendMessage(m.chat, {
-        text: xeonmenuoh,
+        text: phistarmenu,
         contextInfo: {
+            forwardedNewsletterMessageInfo: {
+                newsletterName: "ᴘʜ✦ꜱᴛᴀʀ",
+                newsletterJid: "+120363303946948716", // Changed to channelid
+            },
             externalAdReply: {
-                title: "VIEW CHANNEL",  
-                body: "CLICK HERE TO VIEW CHANNEL",  // Updated body
-                thumbnailUrl: 'https://my-channel.onrender.com/your-image.jpg', 
-                sourceUrl: link, 
+                title: botname,
+                body: ownername,
+                thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp',
+                sourceUrl: link,
                 mediaType: 1,
                 renderLargerThumbnail: true
             }
         }
     }, { quoted: m });
 
-    // Send audio after the menu
-    XeonBotInc.sendMessage(m.chat, {
-        audio: fs.readFileSync('Phistar-media/𝓑𝓲𝓰𝓓𝓪𝓭𝓭𝔂.mp3'),
-        mimetype: 'audio/mpeg', 
-        ptt: true 
+    // Send audio after the menu  
+    XeonBotInc.sendMessage(m.chat, {  
+        audio: fs.readFileSync('Phistar-media/𝓑𝓲𝓰𝓓𝓪𝓭𝓭𝔂.mp3'),  
+        mimetype: 'audio/mpeg', // MIME type for MP3 file  
+        ptt: true // Send as a voice note  
     }, { quoted: m });
 
 } else if (typemenu === 'v2') {
     XeonBotInc.sendMessage(m.chat, {
         video: fs.readFileSync('./Phistar-media/thumb2.mp4'),
         gifPlayback: true,
-        caption: xeonmenuoh,
+        caption: phistarmenu,
         contextInfo: {
+            forwardedNewsletterMessageInfo: {
+                newsletterName: "ᴘʜ✦ꜱᴛᴀʀ",
+                newsletterJid: "120363303946948716@newsletter", // Changed to channelid
+            },
             externalAdReply: {
-                title: "VIEW CHANNEL",
-                body: "CLICK HERE TO VIEW CHANNEL",  // Updated body
-                thumbnailUrl: 'https://my-channel.onrender.com/your-image.jpg', 
-                sourceUrl: link, 
+                title: botname,
+                body: ownername,
+                thumbnailUrl: 'https://i.postimg.cc/J7B3N4NF/file-Z5-Nh-Z2cc-KK4-TG0sz-L7n-Gcc-FJ-1.webp',
+                sourceUrl: link, // Ensured source URL is not empty
                 mediaType: 1,
                 renderLargerThumbnail: true
             }
         }
     }, { quoted: m });
 
-    // Send audio after the menu
-    XeonBotInc.sendMessage(m.chat, {
-        audio: fs.readFileSync('Phistar-media/𝓑𝓲𝓰𝓓𝓪𝓭𝓭𝔂.mp3'),
-        mimetype: 'audio/mpeg',
-        ptt: true
+    // Send audio after the menu  
+    XeonBotInc.sendMessage(m.chat, {  
+        audio: fs.readFileSync('Phistar-media/𝓑𝓲𝓰𝓓𝓪𝓭𝓭𝔂.mp3'),  
+        mimetype: 'audio/mpeg',  
+        ptt: true  
     }, { quoted: m });
 
 } else if (typemenu === 'v3') {
     XeonBotInc.sendMessage(m.chat, {
         video: fs.readFileSync('./Phistar-media/thumb2.mp4'),
-        caption: xeonmenuoh,
+        caption: phistarmenu,
         gifPlayback: true
     }, { quoted: m });
 
-    // Send audio after the menu
-    XeonBotInc.sendMessage(m.chat, {
-        audio: fs.readFileSync('Phistar-media/𝓑𝓲𝓰𝓓𝓪𝓭𝓭𝔂.mp3'),
-        mimetype: 'audio/mpeg',
-        ptt: true
+    // Send audio after the menu  
+    XeonBotInc.sendMessage(m.chat, {  
+        audio: fs.readFileSync('Phistar-media/𝓑𝓲𝓰𝓓𝓪𝓭𝓭𝔂.mp3'),  
+        mimetype: 'audio/mpeg',  
+        ptt: true  
     }, { quoted: m });
 
 } else if (typemenu === 'v4') {
     XeonBotInc.relayMessage(m.chat, {
         scheduledCallCreationMessage: {
             callType: "AUDIO",
-            scheduledTimestampMs: 1200,
+            scheduledTimestampMs: Date.now() + 120000, // Scheduled 2 minutes ahead
             title: xeonmenuoh
         }
     }, {});
 
-    // Send audio after the menu
-    XeonBotInc.sendMessage(m.chat, {
-        audio: fs.readFileSync('Phistar-media/𝓑𝓲𝓰𝓓𝓪𝓭𝓭𝔂.mp3'),
-        mimetype: 'audio/mpeg',
-        ptt: true
+    // Send audio after the menu  
+    XeonBotInc.sendMessage(m.chat, {  
+        audio: fs.readFileSync('Phistar-media/𝓑𝓲𝓰𝓓𝓪𝓭𝓭𝔂.mp3'),  
+        mimetype: 'audio/mpeg',  
+        ptt: true  
     }, { quoted: m });
 }
-                break
-                case 'telestick': {
-		if (args[0] && args[0].match(/(https:\/\/t.me\/addstickers\/)/gi)) {
-		let xeonresources = await Telesticker(args[0])
-		await replygcxeon(`Sending ${xeonresources.length} stickers...`)
-		if (m.isGroup && xeonresources.length > 30) {
-			await replygcxeon('Number of stickers more than 30, bot will send it in private chat.')
-			for (let i = 0; i < xeonresources.length; i++) {
-				XeonBotInc.sendMessage(m.sender, { sticker: { url: xeonresources[i].url }})
-			}
-		} else {
-			for (let i = 0; i < xeonresources.length; i++) {
-				XeonBotInc.sendMessage(m.chat, { sticker: { url: xeonresources[i].url }})
-			}
-		}
-	} else replygcxeon(`Where is the telegram sticker link?\nExample. ${prefix + command} https://t.me/addstickers/FriendlyDeath`)
-}
-break
             default:
                 if (budy.startsWith('=>')) {
                     if (!isCreator) return replygcxeon(mess.owner)
